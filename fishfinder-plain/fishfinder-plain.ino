@@ -8,16 +8,17 @@
 #include <Blink.h>
 
 // Default settings: ----------------------------------------------------------
-// (may be overwritten by config file fishfinder.cfg)
+// (may be overwritten by config file fishgrid.cfg)
 
 int bits = 12;                 // resolution: 10bit 12bit, or 16bit 
-int averaging = 1;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
+int averaging = 1;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slowe
 uint32_t samplingRate = 96000; // samples per second and channel in Hertz
 int8_t channel =  A14;         // input pin for ADC0
 
-char fileName[] = "SDATEFNUM"; // may include DATE, SDATE, TIME, STIME,
+char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 
-int startPin = 24;
+int ampl_enable_pin = 32;      // pin for enabling an audio amplifier
+int startPin = 24;             // pin for push button starting and stopping a recording
 
 // ----------------------------------------------------------------------------
 
@@ -27,11 +28,11 @@ Settings settings("recordings", fileName);
 ContinuousADC aidata;
 
 AudioPlayBuffer playdata(aidata);
-AudioPlayMemory sound0;
 AudioMixer4 mix;
 AudioOutputI2S speaker;
 AudioConnection ac1(playdata, 0, mix, 0);
 AudioConnection aco(mix, 0, speaker, 0);
+AudioControlSGTL5000 audioshield;
 
 SDCard sdcard;
 SDWriter file(sdcard, aidata);
@@ -58,13 +59,17 @@ void setupADC() {
 
 void setupAudio() {
   AudioMemory(16);
-  int enable_pin = 32;
-  if ( enable_pin >= 0 ) {
-    pinMode(enable_pin, OUTPUT);
-    digitalWrite(enable_pin, HIGH); // turn on the amplifier
-    delay(10);                      // allow time to wake up
+  if ( ampl_enable_pin >= 0 ) {
+    pinMode(ampl_enable_pin, OUTPUT);
+    digitalWrite(ampl_enable_pin, HIGH); // turn on the amplifier
+    delay(10);                           // allow time to wake up
   }
-  mix.gain(0, 0.5);
+  audioshield.enable();
+  //audioshield.volume(0.5);
+  //audioshield.muteHeadphone();
+  //audioshield.muteLineout();
+  audioshield.lineOutLevel(31);
+  mix.gain(0, 0.1);
 }
 
 
@@ -90,10 +95,9 @@ bool openNextFile(const String &name) {
   blink.clear();
   if (name.length() == 0)
     return false;
-  String fname = name + ".wav";
   char dts[20];
   rtclock.dateTime(dts);
-  if (! file.openWave(fname.c_str(), -1, dts)) {
+  if (! file.openWave(name.c_str(), -1, dts)) {
     Serial.println();
     Serial.println("WARNING: failed to open file on SD card.");
     Serial.println("SD card probably not inserted or full -> halt");
@@ -102,7 +106,7 @@ bool openNextFile(const String &name) {
     return false;
   }
   file.write();
-  Serial.println(fname);
+  Serial.println(name);
   blink.setSingle();
   blink.blinkSingle(0, 1000);
   return true;
@@ -134,12 +138,9 @@ void startWrite(int id) {
 
 void setupStorage() {
   prevname = "";
-  if (settings.FileTime > 30)
-    blink.setTiming(5000);
   if (file.dataDir(settings.Path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.Path);
   file.setWriteInterval();
-  file.setMaxFileTime(settings.FileTime);
   file.setSoftware("FishFinder plain");
 }
 
