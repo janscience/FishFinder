@@ -18,6 +18,8 @@ int8_t channel =  A14;         // input pin for ADC0
 char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 
 int ampl_enable_pin = 32;      // pin for enabling an audio amplifier
+int volume_up_pin = 25;        // pin for push button for increasing audio volume
+int volume_down_pin = 26;      // pin for push button for decreasing audio volume
 int startPin = 24;             // pin for push button starting and stopping a recording
 
 // ----------------------------------------------------------------------------
@@ -42,6 +44,8 @@ String prevname; // previous file name
 int restarts = 0;
 
 PushButtons buttons;
+float volume = 0.2;
+
 Blink blink(LED_BUILTIN);
 
 
@@ -69,7 +73,23 @@ void setupAudio() {
   //audioshield.muteHeadphone();
   //audioshield.muteLineout();
   audioshield.lineOutLevel(31);
-  mix.gain(0, 0.1);
+  mix.gain(0, volume);
+}
+
+
+void volumeUp(int id) {
+  volume *= 1.414213;
+  if (volume > 0.8)
+    volume = 0.8;
+  mix.gain(0, volume);
+}
+
+
+void volumeDown(int id) {
+  volume /= 1.414213;
+  if (volume < 0.00625)
+    volume = 0.00625;
+  mix.gain(0, volume);
 }
 
 
@@ -145,11 +165,6 @@ void setupStorage() {
 }
 
 
-void setupButtons() {
-  buttons.add(startPin, INPUT_PULLUP, startWrite);
-}
-
-
 void storeData() {
   if (file.pending()) {
     ssize_t samples = file.write();
@@ -186,6 +201,13 @@ void storeData() {
       }
     }
   }
+}
+
+
+void setupButtons() {
+  buttons.add(startPin, INPUT_PULLUP, startWrite);
+  buttons.add(volume_up_pin, INPUT_PULLUP, volumeUp);
+  buttons.add(volume_down_pin, INPUT_PULLUP, volumeDown);
 }
 
 
