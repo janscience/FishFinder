@@ -12,7 +12,7 @@
 
 int bits = 12;                 // resolution: 10bit 12bit, or 16bit 
 int averaging = 1;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
-uint32_t samplingRate = 46000; // samples per second and channel in Hertz
+uint32_t samplingRate = 44000; // samples per second and channel in Hertz
 int8_t channels [] =  {A14, A15, -1, A2, A3, A4, A5, A6, A7, A8, A9};      // input pins for ADC0, terminate with -1
 			
 char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
@@ -20,7 +20,7 @@ char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 int ampl_enable_pin = 32;      // pin for enabling an audio amplifier
 int startPin = 24;             // pin for push button starting and stopping a recording
 
-uint updateAnalysis = 200;     // milliseconds
+uint updateAnalysis = 300;     // milliseconds
 float analysisWindow = 0.1;    // seconds
 
 // ----------------------------------------------------------------------------
@@ -79,9 +79,9 @@ void setupAudio() {
   //audioshield.muteLineout();
   audioshield.lineOutLevel(31);
   mix.gain(0, 0.1);
-  mix.gain(1, 0.02);
+  mix.gain(1, 0.1);
   // make a beep:
-  float freq = 4*440.0;
+  float freq = 1*440.0;
   float duration = 0.2;
   size_t np = size_t(AUDIO_SAMPLE_RATE_EXACT/freq);
   unsigned int n = (unsigned int)(duration*AUDIO_SAMPLE_RATE_EXACT/np)*np;
@@ -219,11 +219,41 @@ void analyzeData() {
   if (analysisTime > updateAnalysis) {
     analysisTime -= updateAnalysis;
     size_t n = aidata.frames(analysisWindow);
+    size_t start = aidata.currentSample(n);
     float data[2][n];
     float max = 0.75;
     int nover = 0;
     for (uint8_t c=0; c<2; c++)
-      aidata.getData(c, aidata.currentSample(n), data[c], n);
+      aidata.getData(c, start, data[c], n);
+    float mean0 = 0.0;
+    float mean1 = 0.0;
+    arm_mean_f32(data[0], n, &mean0);
+    arm_mean_f32(data[1], n, &mean1);
+    arm_offset_f32(data[0], -mean0, data[0], n);
+    arm_offset_f32(data[1], -mean1, data[1], n);
+    float std0;
+    float std1;
+    arm_rms_f32(data[0], n, &std0);
+    arm_rms_f32(data[1], n, &std1);
+    float d12[n];
+    arm_mult_f32(data[0], data[1], d12, n);
+    float covar;
+    arm_mean_f32(d12, n, &covar);
+    float corr = covar;
+    corr /= std0*std1;
+    // cost <0: bad, 1: perfect
+    // float costcorr = (0.2 - corr)/0.8;
+    float costcorr = (corr - 0.2)/0.8;
+    float costratio = 1.0 - abs(std0-std1)/(std0+std1);
+    //float costampl = 0.5*(std0 + std1)/0.7; // better some maxima
+    float cost = (costcorr + costratio)/2;
+    //float cost = (0.2 - corr)/0.8;  // <0: bad, 1: perfect
+    Serial.printf("%6.3f  %6.3f  %6.3f  %6.3f\n", corr, costcorr, costratio, cost);
+    if (cost < 0.0)
+      BeepInterval = 0;
+    else 
+      BeepInterval = 500 - cost*300;
+    /*
     for (uint8_t c=0; c<2; c++) {
       for (size_t i=0; i<n; i++) {
 	      if (data[c][i] > max || data[c][i] < -max)
@@ -235,6 +265,7 @@ void analyzeData() {
       BeepInterval = 500 - frac*300;
     else
       BeepInterval = 0;
+    */
   }
 }
 
