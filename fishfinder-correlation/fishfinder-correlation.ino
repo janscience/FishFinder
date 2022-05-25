@@ -63,6 +63,7 @@ void setupADC() {
 
 void setupAudio() {
   audio.setup(ampl_enable_pin, 0.1, volume_up_pin, volume_down_pin);
+  audio.addFeedback(0.2, 2*440.0, 0.2);
   audio.addFeedback(0.2, 440.0, 0.2);
   audioshield.enable();
   //audioshield.volume(0.5);
@@ -194,8 +195,6 @@ void analyzeData() {
     size_t n = aidata.frames(analysisWindow);
     size_t start = aidata.currentSample(n);
     float data[2][n];
-    float max = 0.75;
-    int nover = 0;
     for (uint8_t c=0; c<2; c++)
       aidata.getData(c, start, data[c], n);
     float mean0 = 0.0;
@@ -223,10 +222,12 @@ void analyzeData() {
     //float cost = (0.2 - corr)/0.8;  // <0: bad, 1: perfect
     Serial.printf("%6.3f  %6.3f  %6.3f  %6.3f\n", corr, costcorr, costratio, cost);
     if (cost < 0.0)
-      audio.setFeedbackInterval(0);
+      audio.setFeedbackInterval(0, 1);
     else 
-      audio.setFeedbackInterval(500 - cost*300);
-    /*
+      audio.setFeedbackInterval(500 - cost*300, 1);
+    // clipping:
+    float max = 0.75;
+    int nover = 0;
     for (uint8_t c=0; c<2; c++) {
       for (size_t i=0; i<n; i++) {
 	      if (data[c][i] > max || data[c][i] < -max)
@@ -235,10 +236,9 @@ void analyzeData() {
     }
     float frac = float(nover)/n/2;
     if (frac > 0.0001)
-      BeepInterval = 500 - frac*300;
+      audio.setFeedbackInterval(500 - frac*300, 0);
     else
-      BeepInterval = 0;
-    */
+      audio.setFeedbackInterval(0, 0);
   }
 }
 
