@@ -1,7 +1,7 @@
 #include <Configurator.h>
 #include <Settings.h>
 #include <ContinuousADC.h>
-#include <AudioPlayBuffer.h>
+#include <AudioMonitor.h>
 #include <SDWriter.h>
 #include <RTClock.h>
 #include <PushButtons.h>
@@ -11,7 +11,7 @@
 // (may be overwritten by config file fishgrid.cfg)
 
 int bits = 12;                 // resolution: 10bit 12bit, or 16bit 
-int averaging = 1;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slowe
+int averaging = 1;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
 uint32_t samplingRate = 96000; // samples per second and channel in Hertz
 int8_t channel =  A14;         // input pin for ADC0
 
@@ -29,12 +29,9 @@ Settings settings("recordings", fileName);
 
 ContinuousADC aidata;
 
-AudioPlayBuffer playdata(aidata);
-AudioMixer4 mix;
 AudioOutputI2S speaker;
-AudioConnection ac1(playdata, 0, mix, 0);
-AudioConnection aco(mix, 0, speaker, 0);
 AudioControlSGTL5000 audioshield;
+AudioMonitor audio(aidata, speaker);
 
 SDCard sdcard;
 SDWriter file(sdcard, aidata);
@@ -44,7 +41,6 @@ String prevname; // previous file name
 int restarts = 0;
 
 PushButtons buttons;
-float volume = 0.2;
 
 Blink blink(LED_BUILTIN);
 
@@ -62,34 +58,12 @@ void setupADC() {
 
 
 void setupAudio() {
-  AudioMemory(16);
-  if ( ampl_enable_pin >= 0 ) {
-    pinMode(ampl_enable_pin, OUTPUT);
-    digitalWrite(ampl_enable_pin, HIGH); // turn on the amplifier
-    delay(10);                           // allow time to wake up
-  }
+  audio.setup(ampl_enable_pin, 0.1, volume_up_pin, volume_down_pin);
   audioshield.enable();
   //audioshield.volume(0.5);
   //audioshield.muteHeadphone();
   //audioshield.muteLineout();
   audioshield.lineOutLevel(31);
-  mix.gain(0, volume);
-}
-
-
-void volumeUp(int id) {
-  volume *= 1.414213;
-  if (volume > 0.8)
-    volume = 0.8;
-  mix.gain(0, volume);
-}
-
-
-void volumeDown(int id) {
-  volume /= 1.414213;
-  if (volume < 0.00625)
-    volume = 0.00625;
-  mix.gain(0, volume);
 }
 
 
@@ -206,8 +180,6 @@ void storeData() {
 
 void setupButtons() {
   buttons.add(startPin, INPUT_PULLUP, startWrite);
-  buttons.add(volume_up_pin, INPUT_PULLUP, volumeUp);
-  buttons.add(volume_down_pin, INPUT_PULLUP, volumeDown);
 }
 
 
@@ -236,5 +208,6 @@ void setup() {
 void loop() {
   buttons.update();
   storeData();
+  audio.update();
   blink.update();
 }

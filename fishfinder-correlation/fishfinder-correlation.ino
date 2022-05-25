@@ -1,7 +1,7 @@
 #include <Configurator.h>
 #include <Settings.h>
 #include <ContinuousADC.h>
-#include <AudioPlayBuffer.h>
+#include <AudioMonitor.h>
 #include <SDWriter.h>
 #include <RTClock.h>
 #include <PushButtons.h>
@@ -18,6 +18,8 @@ int8_t channels [] =  {A14, A15, -1, A2, A3, A4, A5, A6, A7, A8, A9};      // in
 char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 
 int ampl_enable_pin = 32;      // pin for enabling an audio amplifier
+int volume_up_pin = 25;        // pin for push button for increasing audio volume
+int volume_down_pin = 26;      // pin for push button for decreasing audio volume
 int startPin = 24;             // pin for push button starting and stopping a recording
 
 uint updateAnalysis = 300;     // milliseconds
@@ -30,17 +32,10 @@ Settings settings("recordings", fileName);
 
 ContinuousADC aidata;
 
-AudioPlayBuffer playdata(aidata);
-AudioPlayMemory sound0;
-AudioMixer4 mix;
 AudioOutputI2S speaker;
-AudioConnection ac1(playdata, 0, mix, 0);
-AudioConnection ac2(sound0, 0, mix, 1);
-AudioConnection aco(mix, 0, speaker, 0);
 AudioControlSGTL5000 audioshield;
-int16_t *Beep;
-uint BeepInterval = 0;
-elapsedMillis BeepTime;
+AudioMonitor audio(aidata, speaker);
+
 elapsedMillis analysisTime;
 
 SDCard sdcard;
@@ -67,35 +62,14 @@ void setupADC() {
 
 
 void setupAudio() {
-  AudioMemory(16);
-  if ( ampl_enable_pin >= 0 ) {
-    pinMode(ampl_enable_pin, OUTPUT);
-    digitalWrite(ampl_enable_pin, HIGH); // turn on the amplifier
-    delay(10);                           // allow time to wake up
-  }
+  audio.setup(ampl_enable_pin, 0.1, volume_up_pin, volume_down_pin);
+  audio.addFeedback(0.2, 2*440.0, 0.2);
+  audio.addFeedback(0.2, 440.0, 0.2);
   audioshield.enable();
   //audioshield.volume(0.5);
   //audioshield.muteHeadphone();
   //audioshield.muteLineout();
   audioshield.lineOutLevel(31);
-  mix.gain(0, 0.1);
-  mix.gain(1, 0.1);
-  // make a beep:
-  float freq = 1*440.0;
-  float duration = 0.2;
-  size_t np = size_t(AUDIO_SAMPLE_RATE_EXACT/freq);
-  unsigned int n = (unsigned int)(duration*AUDIO_SAMPLE_RATE_EXACT/np)*np;
-  Beep = new int16_t[2+n];
-  // first integer encodes format and size:
-  unsigned int format = 0x81;
-  format <<= 24;
-  format |= n;
-  Beep[0] = format & 0xFFFF;
-  Beep[1] = format >> 16;
-  // Gabor sine tone:
-  uint16_t a = 1 << 15;
-  for (size_t i=0; i<n; i++)
-    Beep[2+i] = (int16_t)(a*exp(-0.5*pow((i-n/2)/(n/4), 2))*sin(TWO_PI*i/np));
 }
 
 
@@ -221,8 +195,6 @@ void analyzeData() {
     size_t n = aidata.frames(analysisWindow);
     size_t start = aidata.currentSample(n);
     float data[2][n];
-    float max = 0.75;
-    int nover = 0;
     for (uint8_t c=0; c<2; c++)
       aidata.getData(c, start, data[c], n);
     float mean0 = 0.0;
@@ -250,10 +222,12 @@ void analyzeData() {
     //float cost = (0.2 - corr)/0.8;  // <0: bad, 1: perfect
     Serial.printf("%6.3f  %6.3f  %6.3f  %6.3f\n", corr, costcorr, costratio, cost);
     if (cost < 0.0)
-      BeepInterval = 0;
+      audio.setFeedbackInterval(0, 1);
     else 
-      BeepInterval = 500 - cost*300;
-    /*
+      audio.setFeedbackInterval(500 - cost*300, 1);
+    // clipping:
+    float max = 0.75;
+    int nover = 0;
     for (uint8_t c=0; c<2; c++) {
       for (size_t i=0; i<n; i++) {
 	      if (data[c][i] > max || data[c][i] < -max)
@@ -262,10 +236,9 @@ void analyzeData() {
     }
     float frac = float(nover)/n/2;
     if (frac > 0.0001)
-      BeepInterval = 500 - frac*300;
+      audio.setFeedbackInterval(500 - frac*300, 0);
     else
-      BeepInterval = 0;
-    */
+      audio.setFeedbackInterval(0, 0);
   }
 }
 
@@ -297,9 +270,6 @@ void loop() {
   buttons.update();
   storeData();
   analyzeData();
+  audio.update();
   blink.update();
-  if (BeepInterval > 0 && BeepTime > BeepInterval) {
-    BeepTime -= BeepInterval;
-    sound0.play((const unsigned int *)Beep);
-  }
 }
