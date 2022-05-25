@@ -1,8 +1,6 @@
 #include <Configurator.h>
 #include <Settings.h>
 #include <ContinuousADC.h>
-#include <Audio.h>
-#include <AudioPlayBuffer.h>
 #include <AudioMonitor.h>
 #include <SDWriter.h>
 #include <RTClock.h>
@@ -31,13 +29,9 @@ Settings settings("recordings", fileName);
 
 ContinuousADC aidata;
 
-AudioPlayBuffer playdata(aidata);
-AudioMixer4 mix;
 AudioOutputI2S speaker;
-AudioConnection ac1(playdata, 0, mix, 0);
-AudioConnection aco(mix, 0, speaker, 0);
 AudioControlSGTL5000 audioshield;
-AudioMonitor audio(mix);
+AudioMonitor audio(aidata, speaker);
 
 SDCard sdcard;
 SDWriter file(sdcard, aidata);
@@ -64,8 +58,7 @@ void setupADC() {
 
 
 void setupAudio() {
-  audio.setupVolume(volume_up_pin, volume_down_pin);
-  audio.setupAmplifier(ampl_enable_pin);
+  audio.setup(ampl_enable_pin, 0.1, volume_up_pin, volume_down_pin);
   audioshield.enable();
   //audioshield.volume(0.5);
   //audioshield.muteHeadphone();
