@@ -18,7 +18,8 @@ class AudioMonitor {
   
   AudioMonitor(AudioMixer4 &mixer, float volume=0.1);
 
-  void setup(int volume_up_pin, int volume_down_pin, int mode=INPUT_PULLUP);
+  void setupVolume(int volume_up_pin, int volume_down_pin, int mode=INPUT_PULLUP);
+  void setupAmplifier(int amplifier_pin=-1);
 
   void update();
   

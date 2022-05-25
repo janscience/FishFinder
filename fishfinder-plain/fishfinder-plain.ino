@@ -64,13 +64,8 @@ void setupADC() {
 
 
 void setupAudio() {
-  audio.setup(volume_up_pin, volume_down_pin);
-  AudioMemory(16);
-  if ( ampl_enable_pin >= 0 ) {
-    pinMode(ampl_enable_pin, OUTPUT);
-    digitalWrite(ampl_enable_pin, HIGH); // turn on the amplifier
-    delay(10);                           // allow time to wake up
-  }
+  audio.setupVolume(volume_up_pin, volume_down_pin);
+  audio.setupAmplifier(ampl_enable_pin);
   audioshield.enable();
   //audioshield.volume(0.5);
   //audioshield.muteHeadphone();
