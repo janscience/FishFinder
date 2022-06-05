@@ -33,7 +33,6 @@ Settings settings("recordings", fileName);
 ContinuousADC aidata;
 
 AudioOutputI2S speaker;
-AudioControlSGTL5000 audioshield;
 AudioMonitor audio(aidata, speaker);
 
 elapsedMillis analysisTime;
@@ -65,11 +64,6 @@ void setupAudio() {
   audio.setup(ampl_enable_pin, 0.1, volume_up_pin, volume_down_pin);
   audio.addFeedback(0.2, 2*440.0, 0.2);
   audio.addFeedback(0.2, 440.0, 0.2);
-  audioshield.enable();
-  //audioshield.volume(0.5);
-  //audioshield.muteHeadphone();
-  //audioshield.muteLineout();
-  audioshield.lineOutLevel(31);
 }
 
 

@@ -30,7 +30,6 @@ Settings settings("recordings", fileName);
 ContinuousADC aidata;
 
 AudioOutputI2S speaker;
-AudioControlSGTL5000 audioshield;
 AudioMonitor audio(aidata, speaker);
 
 SDCard sdcard;
@@ -59,11 +58,6 @@ void setupADC() {
 
 void setupAudio() {
   audio.setup(ampl_enable_pin, 0.1, volume_up_pin, volume_down_pin);
-  audioshield.enable();
-  //audioshield.volume(0.5);
-  //audioshield.muteHeadphone();
-  //audioshield.muteLineout();
-  audioshield.lineOutLevel(31);
 }
 
 
