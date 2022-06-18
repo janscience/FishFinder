@@ -3,18 +3,26 @@
 #include <ContinuousADC.h>
 #include <AudioMonitor.h>
 #include <SDWriter.h>
+#include <Display.h>
+#include <ST7789_t3.h>
+#include <fonts/FreeSans10pt7b.h>
+#include <fonts/FreeSans11pt7b.h>
+#include <fonts/FreeSans12pt7b.h>
 #include <RTClock.h>
 #include <PushButtons.h>
 #include <Blink.h>
 
 // Default settings: ----------------------------------------------------------
-// (may be overwritten by config file fishgrid.cfg)
+// (may be overwritten by config file fishfinder.cfg)
 
 int bits = 12;                 // resolution: 10bit 12bit, or 16bit 
 int averaging = 1;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
-uint32_t samplingRate = 44000; // samples per second and channel in Hertz
-int8_t channels [] =  {A14, A15, -1, A2, A3, A4, A5, A6, A7, A8, A9};      // input pins for ADC0, terminate with -1
-			
+uint32_t samplingRate = 96000; // samples per second and channel in Hertz
+int8_t channel =  A14;         // input pin for ADC0
+
+uint updateScreen = 500;       // milliseconds
+float displayTime = 0.005;
+
 char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 
 #define AMPL_ENABLE_PIN  32  // pin for enabling an audio amplifier
@@ -22,8 +30,14 @@ char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 #define VOLUME_DOWN_PIN  26  // pin for push button for decreasing audio volume
 #define START_PIN        24  // pin for push button starting and stopping a recording
 
-uint updateAnalysis = 300;     // milliseconds
-float analysisWindow = 0.1;    // seconds
+// define pins to control TFT display:
+#define TFT_SCK   13   // default SPI0 bus
+#define TFT_MISO  12   // default SPI0 bus
+#define TFT_MOSI  11   // default SPI0 bus
+#define TFT_CS    10  
+#define TFT_RST   8 // 9
+#define TFT_DC    7 // 8 
+#define TFT_BL   30 // backlight PWM, -1 to not use it
 
 // ----------------------------------------------------------------------------
 
@@ -32,24 +46,27 @@ Settings settings("recordings", fileName);
 
 ContinuousADC aidata;
 
+SDCard sdcard;
+SDWriter file(sdcard, aidata);
+
 AudioOutputI2S speaker;
 AudioMonitor audio(aidata, speaker);
 
-elapsedMillis analysisTime;
-
-SDCard sdcard;
-SDWriter file(sdcard, aidata);
+Display screen;
+ST7789_t3 tft(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST);
+elapsedMillis screenTime;
 
 RTClock rtclock;
 String prevname; // previous file name
 int restarts = 0;
 
 PushButtons buttons;
+
 Blink blink(LED_BUILTIN);
 
 
 void setupADC() {
-  aidata.setChannels(0, channels);
+  aidata.setChannel(0, channel);
   aidata.setRate(samplingRate);
   aidata.setResolution(bits);
   aidata.setAveraging(averaging);
@@ -61,9 +78,88 @@ void setupADC() {
 
 
 void setupAudio() {
-  audio.setup(AMPL_ENABLE_PIN, 0.1, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
-  audio.addFeedback(0.2, 2*440.0, 0.2);
-  audio.addFeedback(0.2, 440.0, 0.2);
+  audio.setup(AMPL_ENABLE_PIN, 0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
+}
+
+
+void initScreen(Display &screen) {
+  tft.init(240, 320);
+  DisplayWrapper<ST7789_t3> *tftscreen = new DisplayWrapper<ST7789_t3>(&tft);
+  screen.init(tftscreen, 1, true);
+  Serial.println();
+  screen.setDefaultFont(FreeSans12pt7b);
+  screen.setTitleFont(FreeSans12pt7b);
+  screen.setSmallFont(FreeSans10pt7b);
+  screen.setBacklightPin(TFT_BL);
+  screen.clear();
+}
+
+
+void AIsplashScreen(Display &screen,
+		    const ContinuousADC &aidata, const char *title) {
+  char msg[100];
+  String convspeed = aidata.conversionSpeedShortStr();
+  String samplspeed = aidata.samplingSpeedShortStr();
+  char chans0[50];
+  char chans1[50];
+  aidata.channels(0, chans0);
+  aidata.channels(1, chans1);
+  if (chans0[0] == '\0')
+    strcpy(chans0, "-");
+  if (chans1[0] == '\0')
+    strcpy(chans1, "-");
+  float bt = aidata.bufferTime();
+  char bts[20];
+  if (bt < 1.0)
+    sprintf(bts, "%.0fms\n", 1000.0*bt);
+  else
+    sprintf(bts, "%.2fs\n", bt);
+  sprintf(msg, "%.0fkHz\n%dbit\n%d,%s,%s\n%s\n%s\n%s",
+          0.001*aidata.rate(), aidata.resolution(), aidata.averaging(),
+          convspeed.c_str(), samplspeed.c_str(), chans0, chans1, bts);
+  screen.setTextArea(0, 0.0, 0.75, 1.0, 0.95);
+  screen.setTitleFont(0);
+  screen.setTextArea(1, 0.0, 0.0, 0.4, 0.7, true);
+  screen.setSmallFont(1);
+  screen.setTextArea(2, 0.4, 0.0, 1.0, 0.7, true);
+  screen.setSmallFont(2);
+  screen.writeText(0, title);
+  screen.writeText(1, "rate:\nres.:\nspeed:\nADC0:\nADC1\nbuffer:");
+  screen.writeText(2, msg);
+  screen.fadeBacklightOn();
+  delay(1500);
+  screen.fadeBacklightOff();
+  screen.clear();
+  screen.clearText();
+}
+
+
+void setupScreen() {
+  screen.setTextArea(0, 0.0, 0.85, 0.38, 1.0);   // action
+  screen.setTextArea(1, 0.4, 0.85, 1.0, 1.0);    // data&time
+  screen.setTextArea(2, 0.0, 0.7, 0.75, 0.85);   // file
+  screen.setTextArea(3, 0.8, 0.7, 1.0, 0.85);    // file time
+  screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.7);
+  screenTime = 0;
+  screen.setBacklightOn();
+}
+
+
+void plotData() {   // 85ms
+  if (screenTime > updateScreen) {
+    screenTime -= updateScreen;
+    char ts[20];
+    rtclock.dateTime(ts);
+    ts[strlen(ts)-3] = '\0';
+    screen.writeText(1, ts);
+    screen.clearPlots();   // 16ms
+    file.write();
+    size_t n = aidata.frames(settings.DisplayTime);
+    float data[n];
+    size_t start = aidata.currentSample(n);
+    aidata.getData(0, start, data, n);
+    screen.plot(0, data, n, 0);
+  }
 }
 
 
@@ -85,7 +181,7 @@ String makeFileName() {
 }
 
 
-bool openNextFile(const String &name) {
+bool openFile(const String &name) {
   blink.clear();
   if (name.length() == 0)
     return false;
@@ -99,7 +195,12 @@ bool openNextFile(const String &name) {
     while (1) {};
     return false;
   }
-  file.write();
+  file.setMaxFileSamples(0);
+  file.start();
+  // all screen writing 210ms:
+  screen.writeText(0, "recording:");
+  screen.clearText(2);
+  screen.writeText(2, name.c_str());
   Serial.println(name);
   blink.setSingle();
   blink.blinkSingle(0, 1000);
@@ -117,21 +218,16 @@ void startWrite(int id) {
         aidata.stop();
         while (1) {};
       }
-      file.setMaxFileSamples(0);
-      file.start();
-      openNextFile(name);
+      openFile(name);
     }
     else {
       file.closeWave();
       blink.clear();
+      screen.writeText(0, "last file:");
+      screen.clearText(3);
       Serial.println("  stopped recording\n");
     }
   }
-}
-
-
-void setupButtons() {
-  buttons.add(START_PIN, INPUT_PULLUP, startWrite);
 }
 
 
@@ -147,12 +243,18 @@ void setupStorage() {
 void storeData() {
   if (file.pending()) {
     ssize_t samples = file.write();
+    if (samples <= 0) {  // XXX we need this for 20kHz, but we should understand that!!!
+      delay(50);
+      samples = file.write();
+    }
     if (samples <= 0) {
       blink.clear();
       Serial.println();
       Serial.println("ERROR in writing data to file:");
       switch (samples) {
         case 0:
+          Serial.printf("  Available %d\n", file.available());
+          break;
           Serial.println("  Nothing written into the file.");
           Serial.println("  SD card probably full -> halt");
           aidata.stop();
@@ -179,61 +281,17 @@ void storeData() {
         mf.close();
       }
     }
+    if (file.isOpen()) {
+      char ts[6];
+      file.fileTimeStr(ts);
+      screen.writeText(3, ts);
+    }
   }
 }
 
 
-void analyzeData() {
-  if (analysisTime > updateAnalysis) {
-    analysisTime -= updateAnalysis;
-    size_t n = aidata.frames(analysisWindow);
-    size_t start = aidata.currentSample(n);
-    float data[2][n];
-    for (uint8_t c=0; c<2; c++)
-      aidata.getData(c, start, data[c], n);
-    float mean0 = 0.0;
-    float mean1 = 0.0;
-    arm_mean_f32(data[0], n, &mean0);
-    arm_mean_f32(data[1], n, &mean1);
-    arm_offset_f32(data[0], -mean0, data[0], n);
-    arm_offset_f32(data[1], -mean1, data[1], n);
-    float std0;
-    float std1;
-    arm_rms_f32(data[0], n, &std0);
-    arm_rms_f32(data[1], n, &std1);
-    float d12[n];
-    arm_mult_f32(data[0], data[1], d12, n);
-    float covar;
-    arm_mean_f32(d12, n, &covar);
-    float corr = covar;
-    corr /= std0*std1;
-    // cost <0: bad, 1: perfect
-    // float costcorr = (0.2 - corr)/0.8;
-    float costcorr = (corr - 0.2)/0.8;
-    float costratio = 1.0 - abs(std0-std1)/(std0+std1);
-    //float costampl = 0.5*(std0 + std1)/0.7; // better some maxima
-    float cost = (costcorr + costratio)/2;
-    //float cost = (0.2 - corr)/0.8;  // <0: bad, 1: perfect
-    Serial.printf("%6.3f  %6.3f  %6.3f  %6.3f\n", corr, costcorr, costratio, cost);
-    if (cost < 0.0)
-      audio.setFeedbackInterval(0, 1);
-    else 
-      audio.setFeedbackInterval(500 - cost*300, 1);
-    // clipping:
-    float max = 0.75;
-    int nover = 0;
-    for (uint8_t c=0; c<2; c++) {
-      for (size_t i=0; i<n; i++) {
-	      if (data[c][i] > max || data[c][i] < -max)
-	        nover++;
-      }
-    }
-    float frac = float(nover)/n/2;
-    if (frac > 0.0001)
-      audio.setFeedbackInterval(500 - frac*300, 0);
-    else
-      audio.setFeedbackInterval(0, 0);
-  }
+void setupButtons() {
+  buttons.add(START_PIN, INPUT_PULLUP, startWrite);
 }
 
 
@@ -252,10 +310,13 @@ void setup() {
   config.configure(sdcard);
   setupStorage();
   aidata.check();
+  initScreen(screen);
+  AIsplashScreen(screen, aidata, "FishFinder V1.0");
+  setupScreen();
   setupAudio();
+  screenTime = 0;
   aidata.start();
   aidata.report();
-  analysisTime = 0;
   blink.switchOff();
 }
 
@@ -263,7 +324,7 @@ void setup() {
 void loop() {
   buttons.update();
   storeData();
-  analyzeData();
   audio.update();
+  plotData();
   blink.update();
 }

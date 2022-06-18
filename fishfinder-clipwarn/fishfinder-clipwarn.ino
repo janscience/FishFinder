@@ -17,10 +17,10 @@ int8_t channel =  A14;         // input pin for ADC0
 
 char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 
-int ampl_enable_pin = 32;      // pin for enabling an audio amplifier
-int volume_up_pin = 25;        // pin for push button for increasing audio volume
-int volume_down_pin = 26;      // pin for push button for decreasing audio volume
-int startPin = 24;             // pin for push button starting and stopping a recording
+#define AMPL_ENABLE_PIN  32  // pin for enabling an audio amplifier
+#define VOLUME_UP_PIN    25  // pin for push button for increasing audio volume
+#define VOLUME_DOWN_PIN  26  // pin for push button for decreasing audio volume
+#define START_PIN        24  // pin for push button starting and stopping a recording
 
 uint updateAnalysis = 500;     // milliseconds
 float analysisWindow = 0.2;    // seconds
@@ -61,7 +61,7 @@ void setupADC() {
 
 
 void setupAudio() {
-  audio.setup(ampl_enable_pin, 0.1, volume_up_pin, volume_down_pin);
+  audio.setup(AMPL_ENABLE_PIN, 0.1, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
   audio.addFeedback(0.2, 2*440.0, 0.2);
 }
 
@@ -130,7 +130,7 @@ void startWrite(int id) {
 
 
 void setupButtons() {
-  buttons.add(startPin, INPUT_PULLUP, startWrite);
+  buttons.add(START_PIN, INPUT_PULLUP, startWrite);
 }
 
 
