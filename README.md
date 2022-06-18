@@ -2,6 +2,12 @@
 
 Smart fishfinders for better EOD recordings of electric fish in the field.
 
+The most recent version, with all features:
+
+- [fishfinder](fishfinder/)
+
+Test versions for single features:
+
 - [plain fishfinder](fishfinder-plain/)
 - [fishfinder with display](fishfinder-display/)
 - [fishfinder with warning for clipping](fishfinder-clipwarn/)

@@ -85,7 +85,7 @@ String makeFileName() {
 }
 
 
-bool openNextFile(const String &name) {
+bool openFile(const String &name) {
   blink.clear();
   if (name.length() == 0)
     return false;
@@ -119,7 +119,7 @@ void startWrite(int id) {
       }
       file.setMaxFileSamples(0);
       file.start();
-      openNextFile(name);
+      openFile(name);
     }
     else {
       file.closeWave();

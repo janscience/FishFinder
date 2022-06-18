@@ -145,14 +145,14 @@ void setupScreen() {
 }
 
 
-void plotData() {   // 85ms
+void plotData() {
   if (screenTime > updateScreen) {
     screenTime -= updateScreen;
     char ts[20];
     rtclock.dateTime(ts);
     ts[strlen(ts)-3] = '\0';
     screen.writeText(1, ts);
-    screen.clearPlots();   // 16ms
+    screen.clearPlots();
     file.write();
     size_t n = aidata.frames(settings.DisplayTime);
     float data[n];
@@ -236,7 +236,7 @@ void setupStorage() {
   if (file.dataDir(settings.Path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.Path);
   file.setWriteInterval();
-  file.setSoftware("FishFinder plain");
+  file.setSoftware("FishFinder display");
 }
 
 
@@ -253,8 +253,6 @@ void storeData() {
       Serial.println("ERROR in writing data to file:");
       switch (samples) {
         case 0:
-          Serial.printf("  Available %d\n", file.available());
-          break;
           Serial.println("  Nothing written into the file.");
           Serial.println("  SD card probably full -> halt");
           aidata.stop();
