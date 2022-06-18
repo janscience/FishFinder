@@ -8,6 +8,7 @@
 #include <fonts/FreeSans10pt7b.h>
 #include <fonts/FreeSans11pt7b.h>
 #include <fonts/FreeSans12pt7b.h>
+#include <Analyzer.h>
 #include <RTClock.h>
 #include <PushButtons.h>
 #include <Blink.h>
@@ -16,7 +17,7 @@
 // (may be overwritten by config file fishgrid.cfg)
 
 int bits = 12;                 // resolution: 10bit 12bit, or 16bit 
-int averaging = 1;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
+int averaging = 4;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
 uint32_t samplingRate = 44000; // samples per second and channel in Hertz
 int8_t channels [] =  {A14, A15, -1, A2, A3, A4, A5, A6, A7, A8, A9};      // input pins for ADC0, terminate with -1
 			
@@ -36,7 +37,7 @@ char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 #define TFT_DC    7 // 8 
 #define TFT_BL   30 // backlight PWM, -1 to not use it
 
-uint updateAnalysis = 300;     // milliseconds
+float updateAnalysis = 0.3;    // seconds
 float analysisWindow = 0.1;    // seconds
 
 // ----------------------------------------------------------------------------
@@ -52,10 +53,10 @@ AudioMonitor audio(aidata, speaker);
 Display screen;
 ST7789_t3 tft(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST);
 
-elapsedMillis analysisTime;
-
 SDCard sdcard;
 SDWriter file(sdcard, aidata);
+
+Analyzer analysis(aidata);
 
 RTClock rtclock;
 String prevname; // previous file name
@@ -78,8 +79,8 @@ void setupADC() {
 
 
 void setupAudio() {
-  audio.setup(AMPL_ENABLE_PIN, 0.1, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
-  audio.addFeedback(0.2, 2*440.0, 0.2);
+  audio.setup(AMPL_ENABLE_PIN, 0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
+  audio.addFeedback(0.05, 2*440.0, 0.2);
   audio.addFeedback(0.2, 440.0, 0.2);
 }
 
@@ -283,64 +284,75 @@ void storeData() {
 }
 
 
-void analyzeData() {
-  if (analysisTime > updateAnalysis) {
-    analysisTime -= updateAnalysis;
-    size_t n = aidata.frames(analysisWindow);
-    size_t start = aidata.currentSample(n);
-    float data[2][n];
-    for (uint8_t c=0; c<2; c++)
-      aidata.getData(c, start, data[c], n);
-    float mean0 = 0.0;
-    float mean1 = 0.0;
-    arm_mean_f32(data[0], n, &mean0);
-    arm_mean_f32(data[1], n, &mean1);
-    arm_offset_f32(data[0], -mean0, data[0], n);
-    arm_offset_f32(data[1], -mean1, data[1], n);
-    float std0;
-    float std1;
-    arm_rms_f32(data[0], n, &std0);
-    arm_rms_f32(data[1], n, &std1);
-    float d12[n];
-    arm_mult_f32(data[0], data[1], d12, n);
-    float covar;
-    arm_mean_f32(d12, n, &covar);
-    float corr = covar;
-    corr /= std0*std1;
-    // cost <0: bad, 1: perfect
-    // float costcorr = (0.2 - corr)/0.8;
-    float costcorr = (corr - 0.2)/0.8;
-    float costratio = 1.0 - abs(std0-std1)/(std0+std1);
-    //float costampl = 0.5*(std0 + std1)/0.7; // better some maxima
-    float cost = (costcorr + costratio)/2;
-    //float cost = (0.2 - corr)/0.8;  // <0: bad, 1: perfect
-    Serial.printf("%6.3f  %6.3f  %6.3f  %6.3f\n", corr, costcorr, costratio, cost);
-    if (cost < 0.0)
-      audio.setFeedbackInterval(0, 1);
-    else 
-      audio.setFeedbackInterval(500 - cost*300, 1);
-    // clipping:
-    float max = 0.75;
-    int nover = 0;
-    for (uint8_t c=0; c<2; c++) {
-      for (size_t i=0; i<n; i++) {
-	      if (data[c][i] > max || data[c][i] < -max)
-	        nover++;
-      }
+void plotting(float **data, uint8_t nchannels, size_t nsamples, float rate) {
+  int nn = nsamples/5;
+  float data_diff[nsamples];
+  arm_add_f32(data[0], data[1], data_diff, nn);
+  arm_scale_f32(data_diff, 0.5, data_diff, nn);
+  plotData(data_diff, nn);
+  //plotData(data[0], nn);
+}
+
+
+void clipping(float **data, uint8_t nchannels, size_t nsamples, float rate) {
+  float max_val = 0.75;
+  int nover = 0;
+  for (uint8_t c=0; c<nchannels; c++) {
+    for (size_t i=0; i<nsamples; i++) {
+      if (data[c][i] > max_val || data[c][i] < -max_val)
+	nover++;
     }
-    float frac = float(nover)/n/2;
-    if (frac > 0.0001)
-      audio.setFeedbackInterval(500 - frac*300, 0);
-    else
-      audio.setFeedbackInterval(0, 0);
-    // plotting:
-    int nn = n/10;
-    float data_diff[nn];
-    arm_add_f32(data[0], data[1], data_diff, nn);
-    arm_scale_f32(data_diff, 0.5, data_diff, nn);
-    plotData(data_diff, nn);
-    //plotData(data[0], nn);
   }
+  float frac = float(nover)/nsamples/nchannels;
+  if (frac > 0.0001)
+    audio.setFeedbackInterval(500 - frac*300, 0);
+  else
+    audio.setFeedbackInterval(0, 0);
+};
+
+
+void correlation(float **data, uint8_t nchannels, size_t nsamples, float rate) {
+  // mean:
+  float mean0 = 0.0;
+  float mean1 = 0.0;
+  arm_mean_f32(data[0], nsamples, &mean0);
+  arm_mean_f32(data[1], nsamples, &mean1);
+  // subtract mean:
+  arm_offset_f32(data[0], -mean0, data[0], nsamples);
+  arm_offset_f32(data[1], -mean1, data[1], nsamples);
+  // standard deviations:
+  float std0;
+  float std1;
+  arm_rms_f32(data[0], nsamples, &std0);
+  arm_rms_f32(data[1], nsamples, &std1);
+  // covariance:
+  float d12[nsamples];
+  arm_mult_f32(data[0], data[1], d12, nsamples);
+  float covar;
+  arm_mean_f32(d12, nsamples, &covar);
+  float corr = covar;
+  corr /= std0*std1;
+  // costs:
+  // cost <0: bad, 1: perfect
+  // float costcorr = (0.2 - corr)/0.8;
+  float costcorr = (corr - 0.2)/0.8;
+  float costratio = 1.0 - abs(std0-std1)/(std0+std1);
+  //float costampl = 0.5*(std0 + std1)/0.7; // better some maxima
+  float cost = (costcorr + costratio)/2;
+  //float cost = (0.2 - corr)/0.8;  // <0: bad, 1: perfect
+  //Serial.printf("%6.3f  %6.3f  %6.3f  %6.3f\n", corr, costcorr, costratio, cost);
+  if (cost < 0.0)
+    audio.setFeedbackInterval(0, 1);
+  else 
+    audio.setFeedbackInterval(500 - cost*300, 1);
+}
+
+
+void setupAnalysis() {
+  analysis.add(plotting);
+  analysis.add(clipping);
+  analysis.add(correlation);
+  analysis.start(updateAnalysis, analysisWindow);
 }
 
 
@@ -363,9 +375,9 @@ void setup() {
   AIsplashScreen(screen, aidata, "FishFinder V1.0");
   setupScreen();
   setupAudio();
+  setupAnalysis();
   aidata.start();
   aidata.report();
-  analysisTime = 0;
   blink.switchOff();
 }
 
@@ -373,7 +385,8 @@ void setup() {
 void loop() {
   buttons.update();
   storeData();
-  analyzeData();
+  //analyzeData();
+  analysis.update();
   audio.update();
   blink.update();
 }
