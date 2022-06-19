@@ -44,7 +44,8 @@ char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 Configurator config;
 Settings settings("recordings", fileName);
 
-ContinuousADC aidata;
+DATA_BUFFER(AIBuffer, NAIBuffer, 256*128)
+ContinuousADC aidata(AIBuffer, NAIBuffer);
 
 SDCard sdcard;
 SDWriter file(sdcard, aidata);

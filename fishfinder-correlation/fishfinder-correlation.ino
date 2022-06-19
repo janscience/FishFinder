@@ -30,7 +30,8 @@ float analysisWindow = 0.1;    // seconds
 Configurator config;
 Settings settings("recordings", fileName);
 
-ContinuousADC aidata;
+DATA_BUFFER(AIBuffer, NAIBuffer, 256*128)
+ContinuousADC aidata(AIBuffer, NAIBuffer);
 
 AudioOutputI2S speaker;
 AudioMonitor audio(aidata, speaker);

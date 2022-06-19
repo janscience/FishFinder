@@ -37,15 +37,16 @@ char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 #define TFT_DC    7 // 8 
 #define TFT_BL   30 // backlight PWM, -1 to not use it
 
-float updateAnalysis = 0.3;    // seconds
-float analysisWindow = 0.1;    // seconds
+float updateAnalysis = 0.25;    // seconds
+float analysisWindow = 0.25;    // seconds
 
 // ----------------------------------------------------------------------------
 
 Configurator config;
 Settings settings("recordings", fileName);
 
-ContinuousADC aidata;
+DATA_BUFFER(AIBuffer, NAIBuffer, 256*128)
+ContinuousADC aidata(AIBuffer, NAIBuffer);
 
 AudioOutputI2S speaker;
 AudioMonitor audio(aidata, speaker);

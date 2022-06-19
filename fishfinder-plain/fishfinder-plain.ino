@@ -27,7 +27,8 @@ int startPin = 24;             // pin for push button starting and stopping a re
 Configurator config;
 Settings settings("recordings", fileName);
 
-ContinuousADC aidata;
+DATA_BUFFER(AIBuffer, NAIBuffer, 256*128)
+ContinuousADC aidata(AIBuffer, NAIBuffer);
 
 AudioOutputI2S speaker;
 AudioMonitor audio(aidata, speaker);
