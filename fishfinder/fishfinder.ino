@@ -285,6 +285,8 @@ void storeData() {
 
 void setupAnalysis() {
   clipping.setThreshold(0.75);   // make it configurable!
+  plotting.setSkipping(2);
+  plotting.setWindow(0.005);
   analysis.start(updateAnalysis, analysisWindow);
 }
 
