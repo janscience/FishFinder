@@ -284,9 +284,12 @@ void storeData() {
 
 
 void setupAnalysis() {
+  clipping.disable();
+  correlation.disable();
   clipping.setThreshold(0.75);   // make it configurable!
   plotting.setSkipping(2);
-  plotting.setWindow(0.005);
+  plotting.setWindow(0.01);
+  plotting.setAlignMax(0.5);
   analysis.start(updateAnalysis, analysisWindow);
 }
 

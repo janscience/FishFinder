@@ -27,6 +27,10 @@ class Plotting : public Analyzer {
   // Default is 1, i.e. plot on every call.
   void setSkipping(int skip);
 
+  // Align the maximum of the data at frac (0-1) within the plot window.
+  // Negative values (default) indicate not to align the data.
+  void setAlignMax(float frac);
+
   // Start plotting data.
   virtual void start();
   
@@ -40,6 +44,7 @@ class Plotting : public Analyzer {
   float Window;
   int MaxCounter;
   int Counter;
+  float Align;
   
 };
 
