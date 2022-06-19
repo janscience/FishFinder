@@ -8,7 +8,11 @@
 #include <fonts/FreeSans10pt7b.h>
 #include <fonts/FreeSans11pt7b.h>
 #include <fonts/FreeSans12pt7b.h>
-#include <Analyzer.h>
+#include <AnalysisChain.h>
+#include <Clipping.h>
+#include <Correlation.h>
+#include <Plotting.h>
+#include <ReportTime.h>
 #include <RTClock.h>
 #include <PushButtons.h>
 #include <Blink.h>
@@ -57,14 +61,19 @@ ST7789_t3 tft(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST);
 SDCard sdcard;
 SDWriter file(sdcard, aidata);
 
-Analyzer analysis(aidata);
-
 RTClock rtclock;
-String prevname; // previous file name
-int restarts = 0;
+
+AnalysisChain analysis(aidata);
+Clipping clipping(&audio, &analysis);
+Correlation correlation(&audio, &analysis);
+Plotting plotting(&screen, &analysis);
+ReportTime reporttime(&screen, 1, &rtclock, &analysis);
 
 PushButtons buttons;
 Blink blink(LED_BUILTIN);
+
+String prevname; // previous file name
+int restarts = 0;
 
 
 void setupADC() {
@@ -145,17 +154,6 @@ void setupScreen() {
   screen.setTextArea(3, 0.8, 0.7, 1.0, 0.85);    // file time
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.7);
   screen.setBacklightOn();
-}
-
-
-void plotData(const float *data, int n) {
-  char ts[20];
-  rtclock.dateTime(ts);
-  ts[strlen(ts)-3] = '\0';
-  screen.writeText(1, ts);
-  screen.clearPlots();
-  file.write();
-  screen.plot(0, data, n, 0);
 }
 
 
@@ -285,74 +283,8 @@ void storeData() {
 }
 
 
-void plotting(float **data, uint8_t nchannels, size_t nsamples, float rate) {
-  int nn = nsamples/5;
-  float data_diff[nsamples];
-  arm_add_f32(data[0], data[1], data_diff, nn);
-  arm_scale_f32(data_diff, 0.5, data_diff, nn);
-  plotData(data_diff, nn);
-  //plotData(data[0], nn);
-}
-
-
-void clipping(float **data, uint8_t nchannels, size_t nsamples, float rate) {
-  float max_val = 0.75;
-  int nover = 0;
-  for (uint8_t c=0; c<nchannels; c++) {
-    for (size_t i=0; i<nsamples; i++) {
-      if (data[c][i] > max_val || data[c][i] < -max_val)
-	nover++;
-    }
-  }
-  float frac = float(nover)/nsamples/nchannels;
-  if (frac > 0.0001)
-    audio.setFeedbackInterval(500 - frac*300, 0);
-  else
-    audio.setFeedbackInterval(0, 0);
-};
-
-
-void correlation(float **data, uint8_t nchannels, size_t nsamples, float rate) {
-  // mean:
-  float mean0 = 0.0;
-  float mean1 = 0.0;
-  arm_mean_f32(data[0], nsamples, &mean0);
-  arm_mean_f32(data[1], nsamples, &mean1);
-  // subtract mean:
-  arm_offset_f32(data[0], -mean0, data[0], nsamples);
-  arm_offset_f32(data[1], -mean1, data[1], nsamples);
-  // standard deviations:
-  float std0;
-  float std1;
-  arm_rms_f32(data[0], nsamples, &std0);
-  arm_rms_f32(data[1], nsamples, &std1);
-  // covariance:
-  float d12[nsamples];
-  arm_mult_f32(data[0], data[1], d12, nsamples);
-  float covar;
-  arm_mean_f32(d12, nsamples, &covar);
-  float corr = covar;
-  corr /= std0*std1;
-  // costs:
-  // cost <0: bad, 1: perfect
-  // float costcorr = (0.2 - corr)/0.8;
-  float costcorr = (corr - 0.2)/0.8;
-  float costratio = 1.0 - abs(std0-std1)/(std0+std1);
-  //float costampl = 0.5*(std0 + std1)/0.7; // better some maxima
-  float cost = (costcorr + costratio)/2;
-  //float cost = (0.2 - corr)/0.8;  // <0: bad, 1: perfect
-  //Serial.printf("%6.3f  %6.3f  %6.3f  %6.3f\n", corr, costcorr, costratio, cost);
-  if (cost < 0.0)
-    audio.setFeedbackInterval(0, 1);
-  else 
-    audio.setFeedbackInterval(500 - cost*300, 1);
-}
-
-
 void setupAnalysis() {
-  analysis.add(plotting);
-  analysis.add(clipping);
-  analysis.add(correlation);
+  clipping.setThreshold(0.75);   // make it configurable!
   analysis.start(updateAnalysis, analysisWindow);
 }
 
