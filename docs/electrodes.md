@@ -18,7 +18,7 @@ We must consider two situations:
 
 R&uuml;diger Krahe style.
 
-![dipole fishfinder](images/dipole-fishfinder.jpg)
+![dipole fishfinder](images/dipole-fishfinder.png)
 
 A voltage is recorded between two electrodes resulting in a single
 channel with dipolar characteristics.
@@ -47,7 +47,7 @@ It depends on how you use those two channels:
   channels.
   
 - Subtract them. Same search properties as dipole fishfinder. Really
-  bad for recording. This configuration is not an option.
+  bad for recording. Therefore, this configuration is not an option.
 
 - Record them both.
 
@@ -66,7 +66,7 @@ against a far away common ground.
 | --------------------------------- | ----------------- | ----------------- | ---------------- |
 | Spatial characteristics           | Dipole            | Dipole            | Monopole         |
 | Sensitivity during searching      | Good              | Weak              | Best             |
-| Noise supression during searching | None              | Good              | None             |
+| Noise supression during searching | No                | Yes               | No               |
 | Indication of head-tail recording | No                | No                | Yes              |
 | Sensitivity during recording      | Good              | Good              | Good             |
 | Noise supression during recording | None              | Yes               | None             |
