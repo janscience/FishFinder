@@ -28,4 +28,9 @@ assuming an efficiancy of 85%: for the 3.7V LiPo it is 2Ah times times
 times 3.7V LiPo voltage divided by 5.1V output voltage times 85%
 efficiancy (=0.62) divided by current.
 
+## Documentation
+
+- [Fishfinder electrodes](docs/electrodes.md)
+
+
 
