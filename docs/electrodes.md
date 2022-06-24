@@ -67,9 +67,9 @@ It depends on how you use those two channels:
 
 | Fishfinder type:                  | 1-channel dipole  | 2-channel dipole | Stereo sum (1-channel) | 2-channel stereo |
 | --------------------------------- | ----------------- | ---------------- | ---------------------- | ---------------- |
-| Spatial characteristics           | Dipole            | _Monopole_       | Dipole                 | Dipole           |
-| Sensitivity during searching      | Good              | _Best_           | Very weak              | Weak             |
-| Noise supression during searching | No                | No               | _Yes_                  | No               |
-| Indication of head-tail recording | No                | _Yes_            | No                     | No               |
+| Spatial characteristics           | Dipole            | **Monopole**     | Dipole                 | Dipole           |
+| Sensitivity during searching      | Good              | **Best**         | Very weak              | Weak             |
+| Noise supression during searching | No                | No               | **Yes**                | No               |
+| Indication of head-tail recording | No                | **Yes**          | No                     | No               |
 | Sensitivity during recording      | Good              | Good             | Good                   | Good             |
-| Noise supression during recording | None              | None             | _Yes_                  | _Yes_            |
+| Noise supression during recording | None              | None             | **Yes**                | **Yes**          |
