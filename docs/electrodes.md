@@ -2,7 +2,7 @@
 
 Different types of fishfinder electrodes are used. Some with two
 electrodes and some with three electrodes. They differ in their
-spatial characteristics strength of the signal during saerching and
+spatial characteristics, strength of the signal during saerching and
 recording and in their ability to suppress common noise.
 
 We must consider two situations:
@@ -16,17 +16,25 @@ We must consider two situations:
 
 ## Dipole fishfinder
 
-R&uuml;diger Krahe style.
-
 ![dipole fishfinder](images/dipole-fishfinder.png)
 
-A voltage is recorded between two electrodes resulting in a single
-channel with dipolar characteristics.
+
+The dipole fishfinder can be used in two configurations:
+
+1. Single-channel that records the voltage between the lead and the
+   reference electrode.  Results in dipolar characteristics
+   ([R&uuml;diger
+   Krahe](https://www.biologie.hu-berlin.de/en/groupsites/vhphysiol)
+   style).
+
+2. Two-channels that record each of the two electrodes against a far
+   away common ground ([Jan Benda](https://bendalab.github.io/) style).
+   During the recording phase one would subtract the two channels.
 
 
 ## Stereo fishfinder
 
-Hopkins/Sullivan style.
+Hopkins/Harned/Sullivan style.
 
 ![stereo fishfinder](images/sullivan-stereo-fishfinder-by-sophie-picq.jpg)
 
@@ -34,7 +42,10 @@ Three electrodes. The middle one is the reference against which the
 front and the back electrode are measured. Results in two channels
 each with a dipolar characteristics.  See [How to build wand
 electrodes and fish finder
-schematics](https://mormyrids.myspecies.info/en/node/473)
+schematics](https://mormyrids.myspecies.info/en/node/473) on
+[Mormyridae - African weakly electric
+fishes](https://mormyrids.myspecies.info) by [John
+Sullivan](https://mormyrids.myspecies.info/en/user/175).
 
 It depends on how you use those two channels:
 
@@ -42,31 +53,23 @@ It depends on how you use those two channels:
   mono-amplifier. This is really bad during the search phase, because
   the signals on both channels differ in sign. During recording phase,
   the sum of both channels result in the same signal as from the
-  dipole fishfinder. In both contexts, common noise and hum is
-  canceled out, because it is picked up with opposite signs by the two
-  channels.
+  single-channel dipole fishfinder. In both contexts, common noise and
+  hum is canceled out, because it is picked up with opposite signs by
+  the two channels.
   
 - Subtract them. Same search properties as dipole fishfinder. Really
   bad for recording. Therefore, this configuration is not an option.
 
-- Record them both.
-
-
-## 2-channel dipole fishfinder
-
-Jan Benda style.
-
-Same hardware as the dipole fishfinder, but each electrode is measured
-against a far away common ground.
+- Record them both as two channels.
 
 
 ## Comparison
 
-|                                   | Dipole fishfinder | Stereo fishfinder | 2-channel dipole |
-| --------------------------------- | ----------------- | ----------------- | ---------------- |
-| Spatial characteristics           | Dipole            | Dipole            | Monopole         |
-| Sensitivity during searching      | Good              | Weak              | Best             |
-| Noise supression during searching | No                | Yes               | No               |
-| Indication of head-tail recording | No                | No                | Yes              |
-| Sensitivity during recording      | Good              | Good              | Good             |
-| Noise supression during recording | None              | Yes               | None             |
+| Fishfinder type:                  | 1-channel dipole  | 2-channel dipole | Stereo sum (1-channel) | 2-channel stereo |
+| --------------------------------- | ----------------- | ---------------- | ---------------------- | ---------------- |
+| Spatial characteristics           | Dipole            | _Monopole_       | Dipole                 | Dipole           |
+| Sensitivity during searching      | Good              | _Best_           | Very weak              | Weak             |
+| Noise supression during searching | No                | No               | _Yes_                  | No               |
+| Indication of head-tail recording | No                | _Yes_            | No                     | No               |
+| Sensitivity during recording      | Good              | Good             | Good                   | Good             |
+| Noise supression during recording | None              | None             | _Yes_                  | _Yes_            |
