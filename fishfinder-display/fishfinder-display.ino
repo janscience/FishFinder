@@ -79,7 +79,8 @@ void setupADC() {
 
 
 void setupAudio() {
-  audio.setup(AMPL_ENABLE_PIN, 0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
+  audio.setupAmp(AMPL_ENABLE_PIN);
+  audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
 }
 
 

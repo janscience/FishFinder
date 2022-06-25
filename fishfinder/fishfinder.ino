@@ -25,9 +25,19 @@
 int bits = 12;                 // resolution: 10bit 12bit, or 16bit 
 int averaging = 4;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
 uint32_t samplingRate = 44100; // samples per second and channel in Hertz, 22.05kHz, 44.1kHz or 96kHz
-int8_t channels [] =  {A14, A15, -1, A2, A3, A4, A5, A6, A7, A8, A9};      // input pins for ADC0, terminate with -1
 			
 char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
+
+#define DATA_BUFFER_SIZE 256*128
+#define AUDIO_BLOCKS 4
+
+float updateAnalysis = 0.25;    // seconds
+float analysisWindow = 0.25;    // seconds
+
+// Pin assignment: ------------------------------------------------------------
+
+#define CHANNEL_FRONT   A14  // input pin for front electrode.
+#define CHANNEL_BACK    A15  // input pin for back electrode.
 
 #define AMPL_ENABLE_PIN  32  // pin for enabling an audio amplifier
 #define VOLUME_UP_PIN    25  // pin for push button for increasing audio volume
@@ -39,12 +49,9 @@ char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 #define TFT_MISO  12   // default SPI0 bus
 #define TFT_MOSI  11   // default SPI0 bus
 #define TFT_CS    10  
-#define TFT_RST   8 // 9
-#define TFT_DC    7 // 8 
-#define TFT_BL   30 // backlight PWM, -1 to not use it
-
-float updateAnalysis = 0.2;    // seconds
-float analysisWindow = 0.2;    // seconds
+#define TFT_RST    8
+#define TFT_DC     7
+#define TFT_BL    30   // backlight PWM, -1 to not use it
 
 
 // ----------------------------------------------------------------------------
@@ -52,7 +59,7 @@ float analysisWindow = 0.2;    // seconds
 Configurator config;
 Settings settings("recordings", fileName);
 
-DATA_BUFFER(AIBuffer, NAIBuffer, 256*96)
+DATA_BUFFER(AIBuffer, NAIBuffer, DATA_BUFFER_SIZE);
 ContinuousADC aidata(AIBuffer, NAIBuffer);
 
 AudioOutputI2S speaker;
@@ -94,7 +101,8 @@ int restarts = 0;
 
 
 void setupADC() {
-  aidata.setChannels(0, channels);
+  aidata.setChannel(0, CHANNEL_FRONT);
+  aidata.addChannel(0, CHANNEL_BACK);
   aidata.setRate(samplingRate);
   aidata.setResolution(bits);
   aidata.setAveraging(averaging);
@@ -106,7 +114,9 @@ void setupADC() {
 
 
 void setupAudio() {
-  audio.setup(AMPL_ENABLE_PIN, 0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
+  AudioMemory(AUDIO_BLOCKS);
+  audio.setupAmp(AMPL_ENABLE_PIN);
+  audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
   audio.addFeedback(0.05, 2*440.0, 0.2);
   audio.addFeedback(0.2, 440.0, 0.2);
 }
@@ -217,7 +227,7 @@ bool openFile(const String &name) {
   file.setMaxFileSamples(0);
   file.start();
   // all screen writing 210ms:
-  screen.writeText(SCREEN_TEXT_ACTION, "recording:");
+  screen.writeText(SCREEN_TEXT_ACTION, "REC");
   screen.writeText(SCREEN_TEXT_FILENAME, name.c_str());
   Serial.println(name);
   blink.setSingle();
@@ -323,7 +333,7 @@ void setup() {
   setupStorage();
   aidata.check();
   initScreen(screen);
-  //AIsplashScreen(screen, aidata, "FishFinder V1.0");
+  //AIsplashScreen(screen, aidata, SOFTWARE);
   setupScreen();
   setupAudio();
   setupAnalysis();
