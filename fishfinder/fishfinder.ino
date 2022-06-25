@@ -17,6 +17,8 @@
 #include <PushButtons.h>
 #include <Blink.h>
 
+#define DEBUG
+
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
 
@@ -41,8 +43,8 @@ char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 #define TFT_DC    7 // 8 
 #define TFT_BL   30 // backlight PWM, -1 to not use it
 
-float updateAnalysis = 0.25;    // seconds
-float analysisWindow = 0.25;    // seconds
+float updateAnalysis = 0.2;    // seconds
+float analysisWindow = 0.2;    // seconds
 
 
 // ----------------------------------------------------------------------------
@@ -50,7 +52,7 @@ float analysisWindow = 0.25;    // seconds
 Configurator config;
 Settings settings("recordings", fileName);
 
-DATA_BUFFER(AIBuffer, NAIBuffer, 256*128)
+DATA_BUFFER(AIBuffer, NAIBuffer, 256*96)
 ContinuousADC aidata(AIBuffer, NAIBuffer);
 
 AudioOutputI2S speaker;
@@ -82,6 +84,13 @@ int restarts = 0;
 #define SCREEN_TEXT_DATETIME 1
 #define SCREEN_TEXT_FILENAME 2
 #define SCREEN_TEXT_FILETIME 3
+
+#ifdef DEBUG
+#include <FreeStack.h>
+  #define CHECK_MEMORY Serial.printf("Free Memory: %d\n", FreeStack());
+#else
+  #define CHECK_MEMORY 
+#endif
 
 
 void setupADC() {
@@ -168,12 +177,13 @@ void setupScreen() {
 void diskFull() {
   Serial.println("SD card probably not inserted or full");
   Serial.println();
-  screen.writeText(SCREEN_TEXT_ACTION, "!NO SD CARD OR FULL!");
+  //screen.writeText(SCREEN_TEXT_ACTION, "!NO SD CARD OR FULL!");
   screen.clearText(SCREEN_TEXT_FILENAME);
 }
 
 
 String makeFileName() {
+  CHECK_MEMORY
   time_t t = now();
   String name = rtclock.makeStr(settings.FileName, t, true);
   if (name != prevname) {
@@ -181,9 +191,11 @@ String makeFileName() {
     prevname = name;
   }
   name = file.incrementFileName(name);
-  if (name.length() == 0) {
+  if (name.length() <= 1) {
     Serial.println("WARNING: failed to increment file name.");
     diskFull();
+    //screen.writeText(SCREEN_TEXT_ACTION, "!INCREMENT!");
+    screen.writeText(SCREEN_TEXT_ACTION, name.c_str());
     return "";
   }
   return name;
@@ -199,6 +211,7 @@ bool openFile(const String &name) {
   if (! file.openWave(name.c_str(), -1, dts)) {
     Serial.println("WARNING: failed to open file on SD card.");
     diskFull();
+    screen.writeText(SCREEN_TEXT_ACTION, "!OPEN!");
     return false;
   }
   file.setMaxFileSamples(0);
@@ -310,7 +323,7 @@ void setup() {
   setupStorage();
   aidata.check();
   initScreen(screen);
-  AIsplashScreen(screen, aidata, "FishFinder V1.0");
+  //AIsplashScreen(screen, aidata, "FishFinder V1.0");
   setupScreen();
   setupAudio();
   setupAnalysis();
