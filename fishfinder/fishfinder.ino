@@ -22,7 +22,7 @@
 
 int bits = 12;                 // resolution: 10bit 12bit, or 16bit 
 int averaging = 4;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
-uint32_t samplingRate = 44000; // samples per second and channel in Hertz
+uint32_t samplingRate = 44100; // samples per second and channel in Hertz, 22.05kHz, 44.1kHz or 96kHz
 int8_t channels [] =  {A14, A15, -1, A2, A3, A4, A5, A6, A7, A8, A9};      // input pins for ADC0, terminate with -1
 			
 char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
@@ -43,6 +43,7 @@ char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 
 float updateAnalysis = 0.25;    // seconds
 float analysisWindow = 0.25;    // seconds
+
 
 // ----------------------------------------------------------------------------
 
@@ -74,6 +75,13 @@ Blink blink(LED_BUILTIN);
 
 String prevname; // previous file name
 int restarts = 0;
+
+#define SOFTWARE "FishFinder V1.0"
+
+#define SCREEN_TEXT_ACTION 0
+#define SCREEN_TEXT_DATETIME 1
+#define SCREEN_TEXT_FILENAME 2
+#define SCREEN_TEXT_FILETIME 3
 
 
 void setupADC() {
@@ -148,12 +156,20 @@ void AIsplashScreen(Display &screen,
 
 
 void setupScreen() {
-  screen.setTextArea(0, 0.0, 0.85, 0.38, 1.0);   // action
-  screen.setTextArea(1, 0.4, 0.85, 1.0, 1.0);    // data&time
-  screen.setTextArea(2, 0.0, 0.7, 0.75, 0.85);   // file
-  screen.setTextArea(3, 0.8, 0.7, 1.0, 0.85);    // file time
+  screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.85, 0.38, 1.0);   // action
+  screen.setTextArea(SCREEN_TEXT_DATETIME, 0.4, 0.85, 1.0, 1.0);    // data&time
+  screen.setTextArea(SCREEN_TEXT_FILENAME, 0.0, 0.7, 0.75, 0.85);   // file
+  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.7, 1.0, 0.85);    // file time
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.7);
   screen.setBacklightOn();
+}
+
+
+void diskFull() {
+  Serial.println("SD card probably not inserted or full");
+  Serial.println();
+  screen.writeText(SCREEN_TEXT_ACTION, "!NO SD CARD OR FULL!");
+  screen.clearText(SCREEN_TEXT_FILENAME);
 }
 
 
@@ -167,8 +183,7 @@ String makeFileName() {
   name = file.incrementFileName(name);
   if (name.length() == 0) {
     Serial.println("WARNING: failed to increment file name.");
-    Serial.println("SD card probably not inserted.");
-    Serial.println();
+    diskFull();
     return "";
   }
   return name;
@@ -182,19 +197,15 @@ bool openFile(const String &name) {
   char dts[20];
   rtclock.dateTime(dts);
   if (! file.openWave(name.c_str(), -1, dts)) {
-    Serial.println();
     Serial.println("WARNING: failed to open file on SD card.");
-    Serial.println("SD card probably not inserted or full -> halt");
-    aidata.stop();
-    while (1) {};
+    diskFull();
     return false;
   }
   file.setMaxFileSamples(0);
   file.start();
   // all screen writing 210ms:
-  screen.writeText(0, "recording:");
-  screen.clearText(2);
-  screen.writeText(2, name.c_str());
+  screen.writeText(SCREEN_TEXT_ACTION, "recording:");
+  screen.writeText(SCREEN_TEXT_FILENAME, name.c_str());
   Serial.println(name);
   blink.setSingle();
   blink.blinkSingle(0, 1000);
@@ -202,31 +213,24 @@ bool openFile(const String &name) {
 }
 
 
-void startWrite(int id) {
+void startStopWrite(int id) {
   // on button press:
-  if (file.available()) {
-    if (!file.isOpen()) {
-      String name = makeFileName();
-      if (name.length() == 0) {
-        Serial.println("-> halt");
-        aidata.stop();
-        while (1) {};
-      }
-      openFile(name);
-    }
-    else {
-      file.closeWave();
-      blink.clear();
-      screen.writeText(0, "last file:");
-      screen.clearText(3);
-      Serial.println("  stopped recording\n");
-    }
+  if (file.isOpen()) {
+    file.closeWave();
+    blink.clear();
+    screen.writeText(SCREEN_TEXT_ACTION, "last file:");
+    screen.clearText(SCREEN_TEXT_FILETIME);
+    Serial.println("  stopped recording\n");
+  }
+  else {
+    String name = makeFileName();
+    openFile(name);
   }
 }
 
 
 void setupButtons() {
-  buttons.add(START_PIN, INPUT_PULLUP, startWrite);
+  buttons.add(START_PIN, INPUT_PULLUP, startStopWrite);
 }
 
 
@@ -235,7 +239,7 @@ void setupStorage() {
   if (file.dataDir(settings.Path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.Path);
   file.setWriteInterval();
-  file.setSoftware("FishFinder");
+  file.setSoftware(SOFTWARE);
 }
 
 
@@ -249,20 +253,16 @@ void storeData() {
       switch (samples) {
         case 0:
           Serial.println("  Nothing written into the file.");
-          Serial.println("  SD card probably full -> halt");
-          aidata.stop();
-          while (1) {};
-          break;
-        case -1:
-          Serial.println("  File not open.");
-          break;
-        case -2:
-          Serial.println("  File already full.");
+          Serial.println("  SD card probably full");
+          screen.writeText(SCREEN_TEXT_ACTION, "!NOTHING WRITTEN!");
           break;
         case -3:
           Serial.println("  No data available, data acquisition probably not running.");
           Serial.println("  sampling rate probably too high,");
           Serial.println("  given the number of channels, averaging, sampling and conversion speed.");
+          screen.writeText(SCREEN_TEXT_ACTION, "!NO DATA!");
+          break;
+        default: // -1 (file not open), -2 (file already full)
           break;
       }
       if (samples == -3) {
@@ -277,7 +277,7 @@ void storeData() {
     if (file.isOpen()) {
       char ts[6];
       file.fileTimeStr(ts);
-      screen.writeText(3, ts);
+      screen.writeText(SCREEN_TEXT_FILETIME, ts);
     }
   }
 }
@@ -323,7 +323,6 @@ void setup() {
 void loop() {
   buttons.update();
   storeData();
-  //analyzeData();
   analysis.update();
   audio.update();
   blink.update();
