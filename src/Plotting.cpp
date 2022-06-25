@@ -19,6 +19,18 @@ void Plotting::setWindow(float time) {
 }
 
 
+void Plotting::zoomIn() {
+  Window *= 0.5;
+  if (Window < 0.001)
+    Window = 0.001;
+}
+
+
+void Plotting::zoomOut() {
+  Window *= 2.0;
+}
+
+
 void Plotting::setSkipping(int skip) {
   if (skip < 1)
     skip = 1;
@@ -51,8 +63,10 @@ void Plotting::analyze(float **data, uint8_t nchannels, size_t nframes) {
     }
     // select window:
     size_t nw = int(Window*Rate);
-    if (nw > nframes)
+    if (nw > nframes) {
       nw = nframes;
+      Window = nw/Rate;
+    }
     int offs = 0;
     if (Align >= 0.0) {
       if (nw > nframes/2)

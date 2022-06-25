@@ -23,6 +23,12 @@ class Plotting : public Analyzer {
   // Default is 10ms.
   void setWindow(float time);
 
+  // Make plot window smaller by a factor of two.
+  void zoomIn();
+
+  // Make plot window larger by a factor of two.
+  void zoomOut();
+
   // Plot only on every skip-th call of analyze().
   // Default is 1, i.e. plot on every call.
   void setSkipping(int skip);
