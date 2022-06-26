@@ -28,21 +28,24 @@ uint32_t samplingRate = 44100; // samples per second and channel in Hertz, 22.05
 			
 char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
 
-#define DATA_BUFFER_SIZE 256*128
+#define DATA_BUFFER_SIZE 256*96
 #define AUDIO_BLOCKS 4
 
-float updateAnalysis = 0.25;    // seconds
-float analysisWindow = 0.25;    // seconds
+float updateAnalysis = 0.2;    // seconds
+float analysisWindow = 0.2;    // seconds
 
 // Pin assignment: ------------------------------------------------------------
 
 #define CHANNEL_FRONT   A14  // input pin for front electrode.
 #define CHANNEL_BACK    A15  // input pin for back electrode.
 
+#define CHANNEL_VOICE   A2   // input pin for voice message
+
 #define AMPL_ENABLE_PIN  32  // pin for enabling an audio amplifier
 #define VOLUME_UP_PIN    25  // pin for push button for increasing audio volume
 #define VOLUME_DOWN_PIN  26  // pin for push button for decreasing audio volume
-#define START_PIN        24  // pin for push button starting and stopping a recording
+#define RECORD_PIN       24  // pin for push button starting and stopping a recording
+#define VOICE_PIN        27  // pin for push button starting and stopping a voice message
 
 // define pins to control TFT display:
 #define TFT_SCK   13   // default SPI0 bus
@@ -69,7 +72,8 @@ Display screen;
 ST7789_t3 tft(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST);
 
 SDCard sdcard;
-SDWriter file(sdcard, aidata);
+SDWriter datafile(sdcard, aidata);
+SDWriter voicefile(sdcard, aidata);
 
 RTClock rtclock;
 
@@ -82,7 +86,8 @@ ReportTime reporttime(&screen, 1, &rtclock, &analysis);
 PushButtons buttons;
 Blink blink(LED_BUILTIN);
 
-String prevname; // previous file name
+String prevname; // previous file name without increment
+String lastname; // last recorded file name
 int restarts = 0;
 
 #define SOFTWARE "FishFinder V1.0"
@@ -100,12 +105,26 @@ int restarts = 0;
 #endif
 
 
-void setupADC() {
+void setupDataADC() {
+  aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_FRONT);
   aidata.addChannel(0, CHANNEL_BACK);
   aidata.setRate(samplingRate);
   aidata.setResolution(bits);
   aidata.setAveraging(averaging);
+  aidata.setConversionSpeed(ADC_CONVERSION_SPEED::HIGH_SPEED);
+  aidata.setSamplingSpeed(ADC_SAMPLING_SPEED::HIGH_SPEED);
+  aidata.setReference(ADC_REFERENCE::REF_3V3);
+  aidata.check();
+}
+
+
+void setupVoiceADC() {
+  aidata.clearChannels();
+  aidata.setChannel(0, CHANNEL_VOICE);
+  aidata.setRate(20050.0);
+  aidata.setResolution(12);
+  aidata.setAveraging(4);
   aidata.setConversionSpeed(ADC_CONVERSION_SPEED::HIGH_SPEED);
   aidata.setSamplingSpeed(ADC_SAMPLING_SPEED::HIGH_SPEED);
   aidata.setReference(ADC_REFERENCE::REF_3V3);
@@ -187,8 +206,8 @@ void setupScreen() {
 void diskFull() {
   Serial.println("SD card probably not inserted or full");
   Serial.println();
-  //screen.writeText(SCREEN_TEXT_ACTION, "!NO SD CARD OR FULL!");
-  screen.clearText(SCREEN_TEXT_FILENAME);
+  screen.writeText(SCREEN_TEXT_FILENAME, "!NO SD CARD!");
+  screen.clearText(SCREEN_TEXT_ACTION);
 }
 
 
@@ -197,15 +216,13 @@ String makeFileName() {
   time_t t = now();
   String name = rtclock.makeStr(settings.FileName, t, true);
   if (name != prevname) {
-    file.resetFileCounter();
+    datafile.resetFileCounter();
     prevname = name;
   }
-  name = file.incrementFileName(name);
-  if (name.length() <= 1) {
+  name = datafile.incrementFileName(name);
+  if (name.length() <= 0) {
     Serial.println("WARNING: failed to increment file name.");
     diskFull();
-    //screen.writeText(SCREEN_TEXT_ACTION, "!INCREMENT!");
-    screen.writeText(SCREEN_TEXT_ACTION, name.c_str());
     return "";
   }
   return name;
@@ -218,14 +235,14 @@ bool openFile(const String &name) {
     return false;
   char dts[20];
   rtclock.dateTime(dts);
-  if (! file.openWave(name.c_str(), -1, dts)) {
+  if (! datafile.openWave(name.c_str(), -1, dts)) {
     Serial.println("WARNING: failed to open file on SD card.");
     diskFull();
-    screen.writeText(SCREEN_TEXT_ACTION, "!OPEN!");
     return false;
   }
-  file.setMaxFileSamples(0);
-  file.start();
+  lastname = name;
+  datafile.setMaxFileSamples(0);
+  datafile.start();
   // all screen writing 210ms:
   screen.writeText(SCREEN_TEXT_ACTION, "REC");
   screen.writeText(SCREEN_TEXT_FILENAME, name.c_str());
@@ -236,10 +253,13 @@ bool openFile(const String &name) {
 }
 
 
-void startStopWrite(int id) {
+void toggleRecord(int id) {
+  if (voicefile.isOpen())  // voice message in progress
+    return;
   // on button press:
-  if (file.isOpen()) {
-    file.closeWave();
+  if (datafile.isOpen()) {
+    datafile.write();
+    datafile.closeWave();
     blink.clear();
     screen.writeText(SCREEN_TEXT_ACTION, "last file:");
     screen.clearText(SCREEN_TEXT_FILETIME);
@@ -252,23 +272,64 @@ void startStopWrite(int id) {
 }
 
 
+void toggleVoiceMessage(int id) {
+  if (datafile.isOpen())       // recording in progress
+    return;
+  if (lastname.length() == 0)  // no recording yet
+    return;
+  if (voicefile.isOpen()) {    // stop voice message
+    voicefile.write();
+    voicefile.closeWave();
+    aidata.stop();
+    screen.writeText(SCREEN_TEXT_ACTION, "last file:");
+    setupDataADC();
+    aidata.start();
+    aidata.report();
+    audio.play();
+    analysis.start(updateAnalysis, analysisWindow);
+    Serial.println("STOP VOICE MESSAGE");
+  }
+  else {                       // start voice message
+    analysis.stop();
+    audio.pause();
+    aidata.stop();
+    screen.clearPlots();
+    setupVoiceADC();
+    aidata.start();
+    aidata.report();
+    String voicename = lastname;
+    voicename.remove(voicename.indexOf(".wav"));
+    voicename += "-message.wav";
+    voicefile.openWave(voicename.c_str());
+    voicefile.setMaxFileSamples(0);
+    voicefile.start();
+    screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
+    blink.setSingle();
+    blink.blinkSingle(0, 1000);
+    Serial.println("START VOICE MESSAGE");
+  }
+}
+
+
 void setupButtons() {
-  buttons.add(START_PIN, INPUT_PULLUP, startStopWrite);
+  buttons.add(RECORD_PIN, INPUT_PULLUP, toggleRecord);
+  buttons.add(VOICE_PIN, INPUT_PULLUP, toggleVoiceMessage);
 }
 
 
 void setupStorage() {
   prevname = "";
-  if (file.dataDir(settings.Path))
+  lastname = "";
+  if (datafile.dataDir(settings.Path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.Path);
-  file.setWriteInterval();
-  file.setSoftware(SOFTWARE);
+  datafile.setWriteInterval();
+  datafile.setSoftware(SOFTWARE);
 }
 
 
 void storeData() {
-  if (file.pending()) {
-    ssize_t samples = file.write();
+  if (datafile.pending()) {
+    ssize_t samples = datafile.write();
     if (samples <= 0) {
       blink.clear();
       Serial.println();
@@ -290,16 +351,24 @@ void storeData() {
       }
       if (samples == -3) {
         aidata.stop();
-        file.closeWave();
+        datafile.closeWave();
         char mfs[20];
         sprintf(mfs, "error%d-%d.msg", restarts+1, -samples);
         FsFile mf = sdcard.openWrite(mfs);
         mf.close();
       }
     }
-    if (file.isOpen()) {
+    if (datafile.isOpen()) {
       char ts[6];
-      file.fileTimeStr(ts);
+      datafile.fileTimeStr(ts);
+      screen.writeText(SCREEN_TEXT_FILETIME, ts);
+    }
+  }
+  if (voicefile.pending()) {
+    voicefile.write();
+    if (voicefile.isOpen()) {
+      char ts[6];
+      voicefile.fileTimeStr(ts);
       screen.writeText(SCREEN_TEXT_FILETIME, ts);
     }
   }
@@ -326,7 +395,7 @@ void setup() {
   rtclock.check();
   rtclock.report();
   setupButtons();
-  setupADC();
+  setupDataADC();
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
   config.configure(sdcard);
