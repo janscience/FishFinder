@@ -11,6 +11,18 @@ Two channel, monopole fishfinder:
 
 - [fishfinder](fishfinder/)
 
+
+## Features
+
+- Audio monitor plays back the recorded signal - that's what every
+  fishfinder does.
+- Audio feedback: indicate clipping by warning tones.
+- A display shows the recorded signal.
+- Recording to SD card.
+- Voice message: after a recording you can record a voice message for
+  some meta data.
+
+
 ## Power consumption
 
 Without amplifier:
