@@ -11,7 +11,7 @@ ReportTime::ReportTime(Display *screen, int textarea, RTClock *rtc,
 }
 
 
-void ReportTime::start() {
+void ReportTime::start(uint8_t nchannels, size_t nframes) {
   PrevTime[0] = '\0';
 }
 

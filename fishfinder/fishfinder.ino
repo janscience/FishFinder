@@ -11,6 +11,7 @@
 #include <AnalysisChain.h>
 #include <Clipping.h>
 #include <Correlation.h>
+#include <Spectrum.h>
 #include <Plotting.h>
 #include <ReportTime.h>
 #include <RTClock.h>
@@ -80,6 +81,7 @@ RTClock rtclock;
 AnalysisChain analysis(aidata);
 Clipping clipping(&audio, &analysis);
 Correlation correlation(&audio, &analysis);
+Spectrum spectrum(&analysis);
 Plotting plotting(&screen, &analysis);
 ReportTime reporttime(&screen, 1, &rtclock, &analysis);
 
@@ -378,6 +380,7 @@ void storeData() {
 void setupAnalysis() {
   clipping.disable();
   correlation.disable();
+  spectrum.disable();
   clipping.setThreshold(0.75);   // make it configurable!
   plotting.setSkipping(2);
   plotting.setWindow(0.01);

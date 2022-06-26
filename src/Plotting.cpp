@@ -44,7 +44,7 @@ void Plotting::setAlignMax(float frac) {
 }
 
 
-void Plotting::start() {
+void Plotting::start(uint8_t nchannels, size_t nframes) {
   Counter = 0;
 }
 

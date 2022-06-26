@@ -22,7 +22,7 @@ class ReportTime : public Analyzer {
 	     AnalysisChain *chain=0);
 
   // Start analyzer.
-  virtual void start();
+  virtual void start(uint8_t nchannels, size_t nframes);
 
   // Report time on screen.
   virtual void analyze(float **data, uint8_t nchannels, size_t nframes);

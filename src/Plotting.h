@@ -38,7 +38,7 @@ class Plotting : public Analyzer {
   void setAlignMax(float frac);
 
   // Start plotting data.
-  virtual void start();
+  virtual void start(uint8_t nchannels, size_t nframes);
   
   // Plot data.
   virtual void analyze(float **data, uint8_t nchannels, size_t nframes);
