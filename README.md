@@ -43,6 +43,7 @@ efficiancy (=0.62) divided by current.
 ## Documentation
 
 - [Fishfinder electrodes](docs/electrodes.md)
+- [Hardware](docs/hardware.md)
 
 
 
