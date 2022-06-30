@@ -37,24 +37,28 @@ float analysisWindow = 0.2;    // seconds
 
 // Pin assignment: ------------------------------------------------------------
 
-#define CHANNEL_FRONT   A14  // input pin for front electrode.
-#define CHANNEL_BACK    A15  // input pin for back electrode.
+#define CHANNEL_FRONT   A10  // input pin for front electrode.
+#define CHANNEL_BACK    A2   // input pin for back electrode.
 
-#define CHANNEL_VOICE   A2   // input pin for voice message
+#define CHANNEL_VOICE   A0   // input pin for voice message
 
-#define AMPL_ENABLE_PIN  32  // pin for enabling an audio amplifier
-#define VOLUME_UP_PIN    25  // pin for push button for increasing audio volume
+#define AMPL_ENABLE_PIN   7  // pin for enabling an audio amplifier
+#define VOLUME_UP_PIN    27  // pin for push button for increasing audio volume
 #define VOLUME_DOWN_PIN  26  // pin for push button for decreasing audio volume
-#define RECORD_PIN       24  // pin for push button starting and stopping a recording
-#define VOICE_PIN        27  // pin for push button starting and stopping a voice message
+#define RECORD_PIN       28  // pin for push button starting and stopping a recording
+#define VOICE_PIN        29  // pin for push button starting and stopping a voice message
+
+// LEDs: ----------------------------------------------------------------------
+
+#define RECORD_LED_PIN   11
+#define VOICE_LED_PIN    12
 
 // define pins to control TFT display:
-#define TFT_SCK   13   // default SPI0 bus
-#define TFT_MISO  12   // default SPI0 bus
-#define TFT_MOSI  11   // default SPI0 bus
-#define TFT_CS    10  
-#define TFT_RST    8
-#define TFT_DC     7
+#define TFT_SCK   32   // SPI1 bus
+#define TFT_MOSI   0   // SPI1 bus
+#define TFT_CS    31  
+#define TFT_RST    2
+#define TFT_DC     1
 #define TFT_BL    30   // backlight PWM, -1 to not use it
 
 
@@ -86,7 +90,8 @@ Plotting plotting(&screen, &analysis);
 ReportTime reporttime(&screen, 1, &rtclock, &analysis);
 
 PushButtons buttons;
-Blink blink(LED_BUILTIN);
+Blink blink(RECORD_LED_PIN);
+Blink voiceled(VOICE_LED_PIN);
 
 String prevname; // previous file name without increment
 String lastname; // last recorded file name
@@ -110,7 +115,7 @@ int restarts = 0;
 void setupDataADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_FRONT);
-  aidata.addChannel(0, CHANNEL_BACK);
+  //aidata.addChannel(0, CHANNEL_BACK);
   aidata.setRate(samplingRate);
   aidata.setResolution(bits);
   aidata.setAveraging(averaging);
