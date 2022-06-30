@@ -37,7 +37,7 @@ float analysisWindow = 0.2;    // seconds
 
 // Pin assignment: ------------------------------------------------------------
 
-#define CHANNEL_FRONT   A10  // input pin for front electrode.
+#define CHANNEL_FRONT   A3  // input pin for front electrode.
 #define CHANNEL_BACK    A2   // input pin for back electrode.
 
 #define CHANNEL_VOICE   A0   // input pin for voice message
@@ -50,15 +50,16 @@ float analysisWindow = 0.2;    // seconds
 
 // LEDs: ----------------------------------------------------------------------
 
-#define RECORD_LED_PIN   11
+//#define RECORD_LED_PIN   11
+#define RECORD_LED_PIN   LED_BUILTIN
 #define VOICE_LED_PIN    12
 
 // define pins to control TFT display:
 #define TFT_SCK   32   // SPI1 bus
 #define TFT_MOSI   0   // SPI1 bus
 #define TFT_CS    31  
-#define TFT_RST    2
-#define TFT_DC     1
+#define TFT_RST    1
+#define TFT_DC    10
 #define TFT_BL    30   // backlight PWM, -1 to not use it
 
 

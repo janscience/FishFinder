@@ -14,8 +14,8 @@ A2, A10
 On SPI1:
 
 - MOSI1: 0
-- D/C: 1
-- RST: 2
+- D/C: 10
+- RST: 1
 - SCK1: 32
 - CS1: 31
 - BL: 30
