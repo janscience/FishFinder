@@ -37,7 +37,7 @@ float analysisWindow = 0.2;    // seconds
 
 // Pin assignment: ------------------------------------------------------------
 
-#define CHANNEL_FRONT   A3  // input pin for front electrode.
+#define CHANNEL_FRONT   A10  // input pin for front electrode.
 #define CHANNEL_BACK    A2   // input pin for back electrode.
 
 #define CHANNEL_VOICE   A0   // input pin for voice message
@@ -50,17 +50,20 @@ float analysisWindow = 0.2;    // seconds
 
 // LEDs: ----------------------------------------------------------------------
 
-//#define RECORD_LED_PIN   11
-#define RECORD_LED_PIN   LED_BUILTIN
+#define RECORD_LED_PIN   11
 #define VOICE_LED_PIN    12
 
-// define pins to control TFT display:
-#define TFT_SCK   32   // SPI1 bus
-#define TFT_MOSI   0   // SPI1 bus
-#define TFT_CS    31  
-#define TFT_RST    1
-#define TFT_DC    10
-#define TFT_BL    30   // backlight PWM, -1 to not use it
+// TFT display: ---------------------------------------------------------------
+
+#define TFT_ROTATION 3
+
+#define TFT_SCK_PIN   32   // SPI1 bus
+#define TFT_MOSI_PIN   0   // SPI1 bus
+#define TFT_CS_PIN    31  
+#define TFT_RST_PIN    1
+#define TFT_DC_PIN    15
+#define TFT_BL_PIN    30   // backlight PWM
+
 
 
 // ----------------------------------------------------------------------------
@@ -75,7 +78,8 @@ AudioOutputI2S speaker;
 AudioMonitor audio(aidata, speaker);
 
 Display screen;
-ST7789_t3 tft(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST);
+ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
+              TFT_SCK_PIN, TFT_RST_PIN);
 
 SDCard sdcard;
 SDWriter datafile(sdcard, aidata);
@@ -152,12 +156,12 @@ void setupAudio() {
 void initScreen(Display &screen) {
   tft.init(240, 320);
   DisplayWrapper<ST7789_t3> *tftscreen = new DisplayWrapper<ST7789_t3>(&tft);
-  screen.init(tftscreen, 1, true);
+  screen.init(tftscreen, TFT_ROTATION, true);
   Serial.println();
   screen.setDefaultFont(FreeSans12pt7b);
   screen.setTitleFont(FreeSans12pt7b);
   screen.setSmallFont(FreeSans10pt7b);
-  screen.setBacklightPin(TFT_BL);
+  screen.setBacklightPin(TFT_BL_PIN);
   screen.clear();
 }
 
@@ -384,7 +388,7 @@ void storeData() {
 
 
 void setupAnalysis() {
-  clipping.disable();
+  //clipping.disable();
   correlation.disable();
   spectrum.disable();
   clipping.setThreshold(0.75);   // make it configurable!
