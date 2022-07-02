@@ -10,8 +10,8 @@
 #include <fonts/FreeSans12pt7b.h>
 #include <AnalysisChain.h>
 #include <Clipping.h>
-#include <Correlation.h>
-#include <Spectrum.h>
+//#include <Correlation.h>
+//#include <Spectrum.h>
 #include <Plotting.h>
 #include <ReportTime.h>
 #include <RTClock.h>
@@ -89,8 +89,8 @@ RTClock rtclock;
 
 AnalysisChain analysis(aidata);
 Clipping clipping(&audio, &analysis);
-Correlation correlation(&audio, &analysis);
-Spectrum spectrum(&analysis);
+//Correlation correlation(&audio, &analysis);
+//Spectrum spectrum(&analysis);
 Plotting plotting(&screen, &analysis);
 ReportTime reporttime(&screen, 1, &rtclock, &analysis);
 
@@ -148,8 +148,9 @@ void setupAudio() {
   AudioMemory(AUDIO_BLOCKS);
   audio.setupAmp(AMPL_ENABLE_PIN);
   audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
-  audio.addFeedback(0.05, 2*440.0, 0.2);
-  audio.addFeedback(0.2, 440.0, 0.2);
+  audio.setLowpass(2);
+  audio.addFeedback(0.4, 6*440.0, 0.17);
+  //audio.addFeedback(0.2, 2*440.0, 0.2);
 }
 
 
@@ -389,10 +390,11 @@ void storeData() {
 
 void setupAnalysis() {
   //clipping.disable();
-  correlation.disable();
-  spectrum.disable();
-  clipping.setThreshold(0.75);   // make it configurable!
-  plotting.setSkipping(2);
+  //correlation.disable();
+  //spectrum.disable();
+  clipping.setClipThreshold(0.8);   // make it configurable!
+  clipping.setMuteThreshold(0.8);   // make it configurable!
+  plotting.setSkipping(4);
   plotting.setWindow(0.01);
   plotting.setAlignMax(0.5);
   analysis.start(updateAnalysis, analysisWindow);
@@ -404,7 +406,7 @@ void setupAnalysis() {
 void setup() {
   blink.switchOn();
   Serial.begin(9600);
-  while (!Serial && millis() < 2000) {};
+  while (!Serial && millis() < 200) {};
   rtclock.check();
   rtclock.report();
   setupButtons();

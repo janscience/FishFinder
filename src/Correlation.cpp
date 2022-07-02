@@ -40,9 +40,6 @@ void Correlation::analyze(float **data, uint8_t nchannels, size_t nframes) {
   float cost = (costcorr + costratio)/2;
   //float cost = (0.2 - corr)/0.8;  // <0: bad, 1: perfect
   //Serial.printf("%6.3f  %6.3f  %6.3f  %6.3f\n", corr, costcorr, costratio, cost);
-  if (cost < 0.0)
-    Audio->setFeedbackInterval(0, 1);
-  else 
-    Audio->setFeedbackInterval(500 - cost*300, 1);
+  Audio->setFeedback(cost, 1);
 }
 
