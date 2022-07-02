@@ -145,6 +145,7 @@ void setupVoiceADC() {
 
 
 void setupAudio() {
+  audio.setMixer(&AudioPlayBuffer::average);
   AudioMemory(AUDIO_BLOCKS);
   audio.setupAmp(AMPL_ENABLE_PIN);
   audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
