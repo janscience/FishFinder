@@ -52,6 +52,7 @@ void Plotting::start(uint8_t nchannels, size_t nframes) {
 void Plotting::analyze(float **data, uint8_t nchannels, size_t nframes) {
   if (Counter == 0) {
     float *pdata = data[0];
+    /*
     if (nchannels > 1) {
       // compute difference:
       float data_diff[nframes];
@@ -61,6 +62,7 @@ void Plotting::analyze(float **data, uint8_t nchannels, size_t nframes) {
       pdata = data_diff;
       // XXX data diff looks weired towards the end of the array!!!
     }
+    */
     // select window:
     size_t nw = int(Window*Rate);
     if (nw > nframes) {
@@ -80,6 +82,8 @@ void Plotting::analyze(float **data, uint8_t nchannels, size_t nframes) {
     // plot:
     Screen->clearPlots();
     Screen->plot(0, &(pdata[offs]), nw, 0);
+    if (nchannels > 1)
+      Screen->plot(0, &(data[1][offs]), nw, 1);
   }
   Counter++;
   if (Counter >= MaxCounter)

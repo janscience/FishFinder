@@ -43,8 +43,8 @@ float analysisWindow = 0.2;    // seconds
 #define CHANNEL_VOICE   A0   // input pin for voice message
 
 #define AMPL_ENABLE_PIN   7  // pin for enabling an audio amplifier
-#define VOLUME_UP_PIN    27  // pin for push button for increasing audio volume
 #define VOLUME_DOWN_PIN  26  // pin for push button for decreasing audio volume
+#define VOLUME_UP_PIN    27  // pin for push button for increasing audio volume
 #define RECORD_PIN       28  // pin for push button starting and stopping a recording
 #define VOICE_PIN        29  // pin for push button starting and stopping a voice message
 
@@ -120,7 +120,7 @@ int restarts = 0;
 void setupDataADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_FRONT);
-  //aidata.addChannel(0, CHANNEL_BACK);
+  aidata.addChannel(1, CHANNEL_BACK);
   aidata.setRate(samplingRate);
   aidata.setResolution(bits);
   aidata.setAveraging(averaging);
@@ -145,7 +145,7 @@ void setupVoiceADC() {
 
 
 void setupAudio() {
-  audio.setMixer(&AudioPlayBuffer::average);
+  audio.setMixer(&AudioPlayBuffer::difference);
   AudioMemory(AUDIO_BLOCKS);
   audio.setupAmp(AMPL_ENABLE_PIN);
   audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
@@ -294,6 +294,7 @@ void toggleVoiceMessage(int id) {
   if (voicefile.isOpen()) {    // stop voice message
     voicefile.write();
     voicefile.closeWave();
+    voiceled.clear();
     aidata.stop();
     screen.writeText(SCREEN_TEXT_ACTION, "last file:");
     setupDataADC();
@@ -318,8 +319,8 @@ void toggleVoiceMessage(int id) {
     voicefile.setMaxFileSamples(0);
     voicefile.start();
     screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
-    blink.setSingle();
-    blink.blinkSingle(0, 1000);
+    voiceled.setSingle();
+    voiceled.blinkSingle(0, 1000);
     Serial.println("START VOICE MESSAGE");
   }
 }
@@ -406,6 +407,7 @@ void setupAnalysis() {
 
 void setup() {
   blink.switchOn();
+  voiceled.switchOn();
   Serial.begin(9600);
   while (!Serial && millis() < 200) {};
   rtclock.check();
@@ -425,6 +427,7 @@ void setup() {
   aidata.start();
   aidata.report();
   blink.switchOff();
+  voiceled.switchOff();
 }
 
 
