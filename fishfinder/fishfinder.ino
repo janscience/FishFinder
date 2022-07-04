@@ -120,7 +120,7 @@ int restarts = 0;
 void setupDataADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_FRONT);
-  aidata.addChannel(1, CHANNEL_BACK);
+  //aidata.setChannel(1, CHANNEL_BACK);
   aidata.setRate(SamplingRate);
   aidata.setResolution(Bits);
   aidata.setAveraging(Averaging);
@@ -375,7 +375,8 @@ void storeData() {
 
 
 void setupAudio() {
-  audio.setMixer(&AudioPlayBuffer::difference);
+  //audio.setMixer(&AudioPlayBuffer::difference);
+  audio.setMixer(&AudioPlayBuffer::assign);
   AudioMemory(AUDIO_BLOCKS);
   audio.setupAmp(AMPL_ENABLE_PIN);
   audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
