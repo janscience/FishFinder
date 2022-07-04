@@ -6,7 +6,6 @@
 #include <Display.h>
 #include <ST7789_t3.h>
 #include <fonts/FreeSans10pt7b.h>
-#include <fonts/FreeSans11pt7b.h>
 #include <fonts/FreeSans12pt7b.h>
 #include <AnalysisChain.h>
 #include <Clipping.h>
@@ -23,24 +22,26 @@
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
 
-int bits = 12;                 // resolution: 10bit 12bit, or 16bit 
-int averaging = 4;             // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
-uint32_t samplingRate = 44100; // samples per second and channel in Hertz, 22.05kHz, 44.1kHz or 96kHz
+uint32_t SamplingRate  = 44100;      // samples per second and channel in Hertz, 22.05kHz, 44.1kHz or 96kHz
+uint8_t  Averaging     = 4;          // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
+uint8_t  Bits          = 12;         // resolution: 10bit 12bit, or 16bit 
+ADC_CONVERSION_SPEED ConversionSpeed = ADC_CONVERSION_SPEED::HIGH_SPEED;
+ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 			
-char fileName[] = "SDATEFNUM.wav";  // may include DATE, SDATE, TIME, STIME,
+#define FILENAME         "SDATEFNUM.wav" // may include DATE, SDATE, TIME, STIME, NUM, ANUM
 
 #define DATA_BUFFER_SIZE 256*96
-#define AUDIO_BLOCKS 4
+#define AUDIO_BLOCKS     4
 
-float updateAnalysis = 0.2;    // seconds
-float analysisWindow = 0.2;    // seconds
+#define UPDATE_ANALYSIS  0.2 // seconds
+#define ANALYSIS_WINDOW  0.2 // seconds
 
 // Pin assignment: ------------------------------------------------------------
 
-#define CHANNEL_FRONT   A10  // input pin for front electrode.
-#define CHANNEL_BACK    A2   // input pin for back electrode.
+#define CHANNEL_FRONT    A10 // input pin for front electrode
+#define CHANNEL_BACK     A2  // input pin for back electrode
 
-#define CHANNEL_VOICE   A0   // input pin for voice message
+#define CHANNEL_VOICE    A0  // input pin for voice message
 
 #define AMPL_ENABLE_PIN   7  // pin for enabling an audio amplifier
 #define VOLUME_DOWN_PIN  26  // pin for push button for decreasing audio volume
@@ -55,21 +56,20 @@ float analysisWindow = 0.2;    // seconds
 
 // TFT display: ---------------------------------------------------------------
 
-#define TFT_ROTATION 3
+#define TFT_ROTATION      3
 
-#define TFT_SCK_PIN   32   // SPI1 bus
-#define TFT_MOSI_PIN   0   // SPI1 bus
-#define TFT_CS_PIN    31  
-#define TFT_RST_PIN    1
-#define TFT_DC_PIN    15
-#define TFT_BL_PIN    30   // backlight PWM
-
+#define TFT_SCK_PIN      32   // SPI1 bus
+#define TFT_CS_PIN       31  
+#define TFT_MOSI_PIN      0   // SPI1 bus
+#define TFT_RST_PIN       1
+#define TFT_DC_PIN       15
+#define TFT_BL_PIN       30   // backlight PWM
 
 
 // ----------------------------------------------------------------------------
 
 Configurator config;
-Settings settings("recordings", fileName);
+Settings settings("recordings", FILENAME);
 
 DATA_BUFFER(AIBuffer, NAIBuffer, DATA_BUFFER_SIZE);
 ContinuousADC aidata(AIBuffer, NAIBuffer);
@@ -121,11 +121,11 @@ void setupDataADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_FRONT);
   aidata.addChannel(1, CHANNEL_BACK);
-  aidata.setRate(samplingRate);
-  aidata.setResolution(bits);
-  aidata.setAveraging(averaging);
-  aidata.setConversionSpeed(ADC_CONVERSION_SPEED::HIGH_SPEED);
-  aidata.setSamplingSpeed(ADC_SAMPLING_SPEED::HIGH_SPEED);
+  aidata.setRate(SamplingRate);
+  aidata.setResolution(Bits);
+  aidata.setAveraging(Averaging);
+  aidata.setConversionSpeed(ConversionSpeed);
+  aidata.setSamplingSpeed(SamplingSpeed);
   aidata.setReference(ADC_REFERENCE::REF_3V3);
   aidata.check();
 }
@@ -135,23 +135,8 @@ void setupVoiceADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_VOICE);
   aidata.setRate(20050.0);
-  aidata.setResolution(12);
   aidata.setAveraging(4);
-  aidata.setConversionSpeed(ADC_CONVERSION_SPEED::HIGH_SPEED);
-  aidata.setSamplingSpeed(ADC_SAMPLING_SPEED::HIGH_SPEED);
-  aidata.setReference(ADC_REFERENCE::REF_3V3);
   aidata.check();
-}
-
-
-void setupAudio() {
-  audio.setMixer(&AudioPlayBuffer::difference);
-  AudioMemory(AUDIO_BLOCKS);
-  audio.setupAmp(AMPL_ENABLE_PIN);
-  audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
-  audio.setLowpass(2);
-  audio.addFeedback(0.4, 6*440.0, 0.17);
-  //audio.addFeedback(0.2, 2*440.0, 0.2);
 }
 
 
@@ -301,7 +286,7 @@ void toggleVoiceMessage(int id) {
     aidata.start();
     aidata.report();
     audio.play();
-    analysis.start(updateAnalysis, analysisWindow);
+    analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
     Serial.println("STOP VOICE MESSAGE");
   }
   else {                       // start voice message
@@ -380,13 +365,23 @@ void storeData() {
     }
   }
   if (voicefile.pending()) {
-    voicefile.write();
-    if (voicefile.isOpen()) {
-      char ts[6];
-      voicefile.fileTimeStr(ts);
-      screen.writeText(SCREEN_TEXT_FILETIME, ts);
-    }
+    ssize_t samples = voicefile.write();
+    Serial.printf("VOICE WROTE %d SAMPLES\n", samples);
+    char ts[6];
+    voicefile.fileTimeStr(ts);
+    screen.writeText(SCREEN_TEXT_FILETIME, ts);
   }
+}
+
+
+void setupAudio() {
+  audio.setMixer(&AudioPlayBuffer::difference);
+  AudioMemory(AUDIO_BLOCKS);
+  audio.setupAmp(AMPL_ENABLE_PIN);
+  audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
+  audio.setLowpass(2);
+  audio.addFeedback(0.4, 6*440.0, 0.17);
+  //audio.addFeedback(0.2, 2*440.0, 0.2);
 }
 
 
@@ -399,7 +394,7 @@ void setupAnalysis() {
   plotting.setSkipping(4);
   plotting.setWindow(0.01);
   plotting.setAlignMax(0.5);
-  analysis.start(updateAnalysis, analysisWindow);
+  analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
 }
 
 
@@ -417,6 +412,11 @@ void setup() {
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
   config.configure(sdcard);
+  SamplingRate = aidata.rate();
+  Averaging = aidata.averaging();
+  Bits = aidata.resolution();
+  ConversionSpeed = aidata.conversionSpeed();
+  SamplingSpeed = aidata.samplingSpeed();
   setupStorage();
   aidata.check();
   initScreen(screen);
