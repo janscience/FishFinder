@@ -390,8 +390,8 @@ void setupAnalysis() {
   //clipping.disable();
   //correlation.disable();
   //spectrum.disable();
-  clipping.setClipThreshold(0.8);   // make it configurable!
-  clipping.setMuteThreshold(0.8);   // make it configurable!
+  clipping.setClipThreshold(0.9);   // make it configurable!
+  clipping.setMuteThreshold(0.7);   // make it configurable!
   plotting.setSkipping(4);
   plotting.setWindow(0.01);
   plotting.setAlignMax(0.5);
