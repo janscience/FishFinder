@@ -69,15 +69,13 @@ void Plotting::analyze(float **data, uint8_t nchannels, size_t nframes) {
       nw = nframes;
       Window = nw/Rate;
     }
-    int offs = 0;
+    uint32_t offs = 0;
     if (Align >= 0.0) {
       if (nw > nframes/2)
 	nw = nframes/2;
       int start = (1.0-Align)*nw;
       float max;
-      uint32_t index;
-      arm_max_f32(&(pdata[start]), 2*nw, &max, &index);
-      offs = index;
+      arm_max_f32(&(pdata[start]), 2*nw, &max, &offs);
     }
     // plot:
     Screen->clearPlots();
