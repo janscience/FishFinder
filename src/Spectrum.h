@@ -20,8 +20,7 @@ class Spectrum : public Analyzer {
   Spectrum(AnalysisChain *chain=0);
 
   // Set size of FFT buffer to nfft.
-  // Must be one of 128, 512, 2048 for Teensy 3.
-  // Must be one of 32, 64, 128, 256, 512, 1024, 2048, 4096 for Teensy 4.
+  // Must be one of 16, 32, 64, 128, 256, 512, 1024, 2048, 4096.
   void setNFFT(size_t nfft);
 
   // Set desired frequency resolution to freq.
@@ -44,6 +43,7 @@ protected:
   size_t NBuffer;
   size_t BufferIndex;
   sample_t *Buffer;
+  q15_t *Power;
   float Resolution;
   arm_cfft_radix2_instance_q15 CFFT;
 };
