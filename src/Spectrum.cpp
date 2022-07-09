@@ -9,12 +9,23 @@ Spectrum::Spectrum(AnalysisChain *chain) :
   BufferIndex(0),
   Buffer(0),
   Power(0),
-  Resolution(10.0) {
+  Resolution(10.0),
+  Changed(false) {
+}
+
+
+size_t Spectrum::nfft() const {
+  return NBuffer/2;
 }
 
 
 void Spectrum::setNFFT(size_t nfft) {
   NBuffer = 2*nfft;
+}
+
+
+float Spectrum::resolution() const {
+  return 2.0/float(NBuffer)*Rate/Step;
 }
 
 
@@ -44,12 +55,7 @@ void Spectrum::start(uint8_t nchannels, size_t nframes) {
   if (rate < Rate)
     Step = round(Rate/rate);
   Offs = 0;
-  Serial.printf("NBuffer=%d\n", NBuffer);
-  Serial.printf("Step=%d\n", Step);
-  Serial.printf("Rate=%gHz\n", Rate/Step);
-  Serial.printf("Resolution=%gHz\n", 2.0/float(NBuffer)*Rate/Step);
-  Serial.printf("Duration=%gs\n", 0.5*float(NBuffer)/Rate*Step);
-  Serial.println();
+  Changed = false;
 }
 
 
@@ -61,6 +67,7 @@ void Spectrum::stop() {
   if (Power != 0)
     free(Power);
   Power = 0;
+  Changed = false;
 }
 
 
@@ -79,16 +86,31 @@ void Spectrum::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
   else {
     BufferIndex = 0;
     Offs = 0;
+    // subtract mean:
+    q15_t mean;
+    arm_mean_q15(Buffer, NBuffer, &mean);
+    mean *= 2;   // half of the data were imaginary numbers of value zero.
+    // subtract mean from real parts:
+    for (size_t i=0; i<NBuffer; i+=2)
+      Buffer[i] -= mean;
+    // apply window function: TODO
     // compute spectrum:
     arm_cfft_radix2_q15(&CFFT, Buffer);
     // power:
     arm_cmplx_mag_squared_q15(Buffer, Power, NBuffer/2);
-    // maximum power:
-    q15_t max;
-    uint32_t index;
-    arm_max_q15(Power, NBuffer/4, &max, &index);
-    float max_freq = float(index)*2/NBuffer*Rate/Step;
-    Serial.printf("freq=%.0fHz\n", max_freq);
+    Changed = true;
   }
+}
+
+
+q15_t *Spectrum::power() const {
+  return Power;
+}
+
+
+bool Spectrum::changed() const {
+  bool c = Changed;
+  Changed = false;
+  return c;
 }
 

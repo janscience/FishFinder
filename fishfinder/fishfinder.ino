@@ -11,6 +11,7 @@
 #include <Clipping.h>
 //#include <Correlation.h>
 #include <Spectrum.h>
+#include <ReportPeakFreq.h>
 #include <Plotting.h>
 #include <ReportTime.h>
 #include <RTClock.h>
@@ -18,6 +19,8 @@
 #include <Blink.h>
 
 #define DEBUG
+
+#define SOFTWARE "FishFinder V1.0"
 
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
@@ -38,8 +41,8 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 
 // Pin assignment: ------------------------------------------------------------
 
-//#define CHANNEL_FRONT    A10 // input pin for front electrode
-#define CHANNEL_FRONT    A2 // input pin for front electrode
+#define CHANNEL_FRONT    A10 // input pin for front electrode
+//#define CHANNEL_FRONT    A2 // input pin for front electrode
 #define CHANNEL_BACK     A2  // input pin for back electrode
 
 #define CHANNEL_VOICE    A0  // input pin for voice message
@@ -66,6 +69,12 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define TFT_DC_PIN       15
 #define TFT_BL_PIN       30   // backlight PWM
 
+// Text areas: ----------------------------------------------------------------
+
+#define SCREEN_TEXT_ACTION 0
+#define SCREEN_TEXT_DATETIME 1
+#define SCREEN_TEXT_FILENAME 2
+#define SCREEN_TEXT_FILETIME 3
 
 // ----------------------------------------------------------------------------
 
@@ -92,6 +101,7 @@ AnalysisChain analysis(aidata);
 Clipping clipping(&audio, 0, &analysis);
 //Correlation correlation(&audio, 1, &analysis);
 Spectrum spectrum(&analysis);
+ReportPeakFreq peakfreq(&screen, SCREEN_TEXT_FILETIME, &spectrum, &analysis);
 Plotting plotting(&screen, &analysis);
 ReportTime reporttime(&screen, 1, &rtclock, &analysis);
 
@@ -102,13 +112,6 @@ Blink voiceled(VOICE_LED_PIN);
 String prevname; // previous file name without increment
 String lastname; // last recorded file name
 int restarts = 0;
-
-#define SOFTWARE "FishFinder V1.0"
-
-#define SCREEN_TEXT_ACTION 0
-#define SCREEN_TEXT_DATETIME 1
-#define SCREEN_TEXT_FILENAME 2
-#define SCREEN_TEXT_FILETIME 3
 
 #ifdef DEBUG
 #include <FreeStack.h>
