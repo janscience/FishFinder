@@ -2,6 +2,8 @@
 
 Smart fishfinders for better EOD recordings of electric fish in the field.
 
+![fishfinder](docs/images/fishfinder-v1a-rec.jpg)
+
 Single channel, dipole fishfinder:
 
 - [plain fishfinder](fishfinder-plain/)
