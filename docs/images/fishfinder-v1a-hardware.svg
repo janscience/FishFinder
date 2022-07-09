@@ -43,9 +43,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.6058045"
-     inkscape:cx="402.96459"
-     inkscape:cy="207.42046"
+     inkscape:zoom="1.6235016"
+     inkscape:cx="286.79763"
+     inkscape:cy="209.73186"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -78,14 +78,14 @@
     <image
        sodipodi:absref="/home/jan/Arduino/libraries/FishFinder/docs/images/fishfinder-v1a-hardware.jpg"
        xlink:href="fishfinder-v1a-hardware.jpg"
-       clip-path="url(#clipPath899)"
-       y="72.46965"
-       x="23.687597"
-       id="image69"
-       preserveAspectRatio="none"
-       height="120.63604"
+       style="stroke-width:6.57970858"
        width="160.84805"
-       style="stroke-width:6.57970858" />
+       height="120.63604"
+       preserveAspectRatio="none"
+       id="image69"
+       x="23.687597"
+       y="72.46965"
+       clip-path="url(#clipPath899)" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.8777771px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -412,6 +412,50 @@
        style="opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="m 139.82852,182.89015 15.15855,-0.82384"
        id="path72"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="29.812056"
+       y="125.79875"
+       id="text71"><tspan
+         sodipodi:role="line"
+         id="tspan69"
+         x="29.812056"
+         y="125.79875"
+         style="fill:#ffffff;stroke-width:0.26458332px">Amplifier</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="29.812056"
+       y="135.45427"
+       id="text75"><tspan
+         sodipodi:role="line"
+         id="tspan73"
+         x="29.812056"
+         y="135.45427"
+         style="fill:#ffffff;stroke-width:0.26458332px">Teensy</tspan></text>
+    <circle
+       r="1.1514453"
+       cy="149.82404"
+       cx="101.8746"
+       id="circle77"
+       style="opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <circle
+       style="opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="circle79"
+       cx="101.8746"
+       cy="142.41565"
+       r="1.1514453" />
+    <path
+       style="opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 53.532865,124.16904 101.77222,142.2588"
+       id="path81"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 48.969683,133.94729 52.965507,15.80817"
+       id="path83"
        inkscape:connector-curvature="0" />
   </g>
 </svg>
