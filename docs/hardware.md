@@ -1,6 +1,6 @@
 # Hardware
 
-![hardware](images/fishfinder-v1a-hardwarex.png)
+![hardware](images/fishfinder-v1a-hardware.png)
 
 
 ## Pinout

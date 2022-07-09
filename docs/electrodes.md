@@ -22,7 +22,8 @@ We must consider two situations:
 The dipole fishfinder can be used in two configurations:
 
 1. Single-channel that records the voltage between the lead and the
-   reference electrode.  Results in dipolar characteristics
+   reference electrode. The reference electrode is connected to ground
+   of the amplifier/recorder. Results in dipolar characteristics
    ([R&uuml;diger
    Krahe](https://www.biologie.hu-berlin.de/en/groupsites/vhphysiol)
    style).
@@ -38,38 +39,45 @@ Hopkins/Harned/Sullivan style.
 
 ![stereo fishfinder](images/sullivan-stereo-fishfinder-by-sophie-picq.jpg)
 
-Three electrodes. The middle one is the reference against which the
-front and the back electrode are measured. Results in two channels
-each with a dipolar characteristics.  See [How to build wand
-electrodes and fish finder
+Three electrodes. See [How to build wand electrodes and fish finder
 schematics](https://mormyrids.myspecies.info/en/node/473) on
 [Mormyridae - African weakly electric
 fishes](https://mormyrids.myspecies.info) by [John
 Sullivan](https://mormyrids.myspecies.info/en/user/175).
 
-It depends on how you use those two channels:
+It depends on how you use the three electrodes:
 
-- Just sum them up. This most-likely happens if you plug this into a
-  mono-amplifier. This is really bad during the search phase, because
-  the signals on both channels differ in sign. During recording phase,
-  the sum of both channels result in the same signal as from the
-  single-channel dipole fishfinder. In both contexts, common noise and
-  hum is canceled out, because it is picked up with opposite signs by
-  the two channels.
-  
-- Subtract them. Same search properties as dipole fishfinder. Really
-  bad for recording. Therefore, this configuration is not an option.
+- Use the middle one as ground and do a differential recording between
+  the front and back electrodes. This results in similar, but probably
+  better characteristics as the single-channel recording of the dipole
+  fishfinder.
 
-- Record them both as two channels.
+- The middle electrode is the reference against which the front and
+  the back electrode are measured. Results in two channels each with a
+  dipolar characteristics:
+
+  - Just sum the two signals up. This most-likely happens if you plug
+    this into a mono-amplifier. This is really bad during the search
+    phase, because the signals on both channels differ in sign and
+    almost cancel each other out. During recording phase, the sum of
+    both channels result in the same signal as from the single-channel
+    dipole fishfinder. In both contexts, common noise and hum is
+    canceled out, because it is picked up with opposite signs by the
+    two channels.
+  - Subtract them. Same search properties as dipole fishfinder. Really
+    bad for recording. Therefore, this configuration is not an option.
+  - Record them both as two channels. Similar as the two-channel
+    dipole fishfinder, but can not differentiate between search phase
+    and head-tail configuration.
 
 
 ## Comparison
 
-| Fishfinder type:                  | 1-channel dipole  | 2-channel dipole | Stereo sum (1-channel) | 2-channel stereo |
-| --------------------------------- | ----------------- | ---------------- | ---------------------- | ---------------- |
-| Spatial characteristics           | Dipole            | **Monopole**     | Dipole                 | Dipole           |
-| Sensitivity during searching      | Good              | **Best**         | Very weak              | Weak             |
-| Noise supression during searching | No                | No               | **Yes**                | No               |
-| Indication of head-tail recording | No                | **Yes**          | No                     | No               |
-| Sensitivity during recording      | Good              | Good             | Good                   | Good             |
-| Noise supression during recording | None              | None             | **Yes**                | **Yes**          |
+| Fishfinder type:                  | 1-channel dipole  | 2-channel dipole | Stereo differential    | Stereo sum (1-channel) | 2-channel stereo |
+| --------------------------------- | ----------------- | ---------------- | ---------------------- | ---------------------- | ---------------- |
+| Spatial characteristics           | Dipole            | **Monopole**     | Dipole                 | Dipole                 | Dipole           |
+| Sensitivity during searching      | Good              | **Best**         | Good                   | Very weak              | Weak             |
+| Noise supression during searching | Yes               | No               | **Better**             | Better?                | Yes?             |
+| Indication of head-tail recording | No                | **Yes**          | No                     | No                     | No               |
+| Sensitivity during recording      | Good              | Good             | Good                   | Good                   | Good             |
+| Noise supression during recording | Yes               | No (software)    | Yes                    | Yes                    | Yes              |
