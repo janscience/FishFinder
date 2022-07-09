@@ -14,6 +14,7 @@ Smart fishfinders for better EOD recordings of electric fish in the field.
 - Recording to SD card.
 - Voice message: after a recording you can record a voice message for
   some meta data.
+- Indicate peak frequency of power spectrum on display.
 
 
 ## Usage

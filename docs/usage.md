@@ -24,4 +24,4 @@
 5. Press the green voice button to start recording a voice message.
 6. Press the voice button to stop the voice message.
 7. Find and record the next fish.
-8. Switch the fishfinder of via the on/off switch.
+8. Switch the fishfinder off via the on/off switch.
