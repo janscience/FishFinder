@@ -2,4 +2,6 @@
 
 ## Inputs
 
-![inputs](images/fishfinder-v1a-inputs.png)
+<img src="images/fishfinder-v1a-inputs.png" width=60%>
+
+

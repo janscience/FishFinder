@@ -2,7 +2,7 @@
 
 Smart fishfinders for better EOD recordings of electric fish in the field.
 
-![fishfinder](docs/images/fishfinder-v1a-rec.jpg)
+<img src="docs/images/fishfinder-v1a-rec.jpg" width=50%>
 
 
 ## Features
@@ -18,12 +18,12 @@ Smart fishfinders for better EOD recordings of electric fish in the field.
 
 ## Usage
 
-Read [user manual](docs/usage.md)
+Read the [user manual](docs/usage.md).
 
 
 ## Sketches
 
-Current version:
+Current version of the fishfinder software:
 
 - [fishfinder](fishfinder/)
 
@@ -52,6 +52,7 @@ efficiancy (=0.62) divided by current.
 
 ## Documentation
 
+- [Usage](docs/usage.md)
 - [Fishfinder electrodes](docs/electrodes.md)
 - [Hardware](docs/hardware.md)
 

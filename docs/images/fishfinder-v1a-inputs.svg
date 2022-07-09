@@ -16,8 +16,8 @@
    version="1.1"
    id="svg8"
    inkscape:export-filename="/home/jan/Arduino/libraries/FishFinder/docs/images/fishfinder-v1a-inputs.png"
-   inkscape:export-xdpi="300.01477"
-   inkscape:export-ydpi="300.01477"
+   inkscape:export-xdpi="199.96346"
+   inkscape:export-ydpi="199.96346"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="fishfinder-v1a-inputs.svg">
   <defs
@@ -64,13 +64,13 @@
     <image
        sodipodi:absref="/home/jan/Arduino/libraries/FishFinder/docs/images/fishfinder-v1a-inputs.jpg"
        xlink:href="fishfinder-v1a-inputs.jpg"
-       style="stroke-width:3.11935592"
-       width="160.56401"
-       height="182.53235"
-       preserveAspectRatio="none"
-       id="image123"
+       y="40.996895"
        x="22.399002"
-       y="40.996895" />
+       id="image123"
+       preserveAspectRatio="none"
+       height="182.53235"
+       width="160.56401"
+       style="stroke-width:3.11935592" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
