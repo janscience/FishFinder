@@ -24,8 +24,8 @@ class ReportTime : public Analyzer {
   // Start analyzer.
   virtual void start(uint8_t nchannels, size_t nframes);
 
-  // Report time on screen.
-  virtual void analyze(float **data, uint8_t nchannels, size_t nframes);
+  // Report time on screen. This function does not use data.
+  virtual void analyze(sample_t **data, uint8_t nchannels, size_t nframes);
 
 
  protected:

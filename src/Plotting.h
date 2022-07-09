@@ -41,7 +41,7 @@ class Plotting : public Analyzer {
   virtual void start(uint8_t nchannels, size_t nframes);
   
   // Plot data.
-  virtual void analyze(float **data, uint8_t nchannels, size_t nframes);
+  virtual void analyze(sample_t **data, uint8_t nchannels, size_t nframes);
 
 
  protected:

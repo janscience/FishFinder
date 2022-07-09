@@ -16,7 +16,7 @@ void ReportTime::start(uint8_t nchannels, size_t nframes) {
 }
 
 
-void ReportTime::analyze(float **data, uint8_t nchannels, size_t nframes) {
+void ReportTime::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
   char ts[20];
   RTC->dateTime(ts);
   ts[strlen(ts)-3] = '\0';

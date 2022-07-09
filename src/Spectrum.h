@@ -34,7 +34,7 @@ class Spectrum : public Analyzer {
   virtual void stop();
 
   // Compute power spectrum.
-  virtual void analyze(float **data, uint8_t nchannels, size_t nframes);
+  virtual void analyze(sample_t **data, uint8_t nchannels, size_t nframes);
 
   
 protected:
@@ -43,11 +43,9 @@ protected:
   size_t Offs;
   size_t NBuffer;
   size_t BufferIndex;
-  float *Buffer;
+  sample_t *Buffer;
   float Resolution;
-  arm_cfft_radix4_instance_f32 CFFT;   // Teensy 3
-  arm_rfft_instance_f32 RFFT;          // Teensy 3
-  // arm_rfft_fast_instance_f32 RFFT;  // Teensy 4
+  arm_cfft_radix2_instance_q15 CFFT;
 };
 
 

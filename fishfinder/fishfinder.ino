@@ -39,6 +39,7 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 // Pin assignment: ------------------------------------------------------------
 
 #define CHANNEL_FRONT    A10 // input pin for front electrode
+//#define CHANNEL_FRONT    A2 // input pin for front electrode
 #define CHANNEL_BACK     A2  // input pin for back electrode
 
 #define CHANNEL_VOICE    A0  // input pin for voice message
@@ -88,8 +89,8 @@ SDWriter voicefile(sdcard, aidata);
 RTClock rtclock;
 
 AnalysisChain analysis(aidata);
-Clipping clipping(&audio, &analysis);
-//Correlation correlation(&audio, &analysis);
+Clipping clipping(&audio, 0, &analysis);
+//Correlation correlation(&audio, 1, &analysis);
 //Spectrum spectrum(&analysis);
 Plotting plotting(&screen, &analysis);
 ReportTime reporttime(&screen, 1, &rtclock, &analysis);
@@ -365,8 +366,7 @@ void storeData() {
     }
   }
   if (voicefile.pending()) {
-    ssize_t samples = voicefile.write();
-    Serial.printf("VOICE WROTE %d SAMPLES\n", samples);
+    voicefile.write();
     char ts[6];
     voicefile.fileTimeStr(ts);
     screen.writeText(SCREEN_TEXT_FILETIME, ts);

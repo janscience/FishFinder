@@ -49,16 +49,16 @@ void Plotting::start(uint8_t nchannels, size_t nframes) {
 }
 
 
-void Plotting::analyze(float **data, uint8_t nchannels, size_t nframes) {
+void Plotting::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
   if (Counter == 0) {
-    float *pdata = data[0];
+    sample_t *pdata = data[0];
     /*
     if (nchannels > 1) {
       // compute difference:
-      float data_diff[nframes];
-      //arm_sub_f32(data[0], data[1], data_diff, nframes);
-      arm_add_f32(data[0], data[1], data_diff, nframes);
-      arm_scale_f32(data_diff, 0.5, data_diff, nframes);
+      sample_t data_diff[nframes];
+      //arm_sub_q15(data[0], data[1], data_diff, nframes);
+      arm_add_q15(data[0], data[1], data_diff, nframes); XXX Overflow!!!
+      arm_scale_q15(data_diff, 0.5, data_diff, nframes);
       pdata = data_diff;
       // XXX data diff looks weired towards the end of the array!!!
     }
@@ -74,8 +74,8 @@ void Plotting::analyze(float **data, uint8_t nchannels, size_t nframes) {
       if (nw > nframes/2)
 	nw = nframes/2;
       int start = (1.0-Align)*nw;
-      float max;
-      arm_max_f32(&(pdata[start]), 2*nw, &max, &offs);
+      q15_t max;
+      arm_max_q15(&(pdata[start]), 2*nw, &max, &offs);
     }
     // plot:
     Screen->clearPlots();

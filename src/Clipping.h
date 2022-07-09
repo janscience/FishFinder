@@ -17,7 +17,10 @@ class Clipping : public Analyzer {
  public:
 
   // Construct clipping analyzer.
-  Clipping(AudioMonitor *audio=0, AnalysisChain *chain=0);
+  Clipping(AnalysisChain *chain=0);
+
+  // Construct clipping analyzer with audio feedback on channel feedback.
+  Clipping(AudioMonitor *audio, uint8_t feedback, AnalysisChain *chain=0);
 
   // Set amplitude threshold for detecting clipped signals (0-1).
   // Default is 0.75.
@@ -27,15 +30,31 @@ class Clipping : public Analyzer {
   // Default is 1, i.e. do not mute.
   void setMuteThreshold(float thresh);
 
+  // Initialize.
+  virtual void start(uint8_t nchannels, size_t nframes);
+
   // Check for clipping.
-  virtual void analyze(float **data, uint8_t nchannels, size_t nframes);
+  virtual void analyze(sample_t **data, uint8_t nchannels, size_t nframes);
+
+  // Fraction of data points above clipping threshold.
+  float clippedAbove() const;
+
+  // Fraction of data points below negative clipping threshold.
+  float clippedBelow() const;
+
+  // Fraction of clipped data points, sum of clippedAbove() and clippedBelow().
+  float clipped() const;
 
 
  protected:
 
-  float ClipThreshold;
+  sample_t ClipThreshold;
   float MuteThreshold;
+  float ClippedAboveFrac;
+  float ClippedBelowFrac;
+  float ClippedFrac;
   AudioMonitor *Audio;
+  uint8_t AudioFeedback;
   
 };
 
