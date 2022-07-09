@@ -1,5 +1,8 @@
 # Hardware
 
+![hardware](images/fishfinder-v1a-hardwarex.png)
+
+
 ## Pinout
 
 ![pinout](images/fishfinder-teensy3.5-pinout.png)
