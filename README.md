@@ -4,15 +4,6 @@ Smart fishfinders for better EOD recordings of electric fish in the field.
 
 ![fishfinder](docs/images/fishfinder-v1a-rec.jpg)
 
-Single channel, dipole fishfinder:
-
-- [plain fishfinder](fishfinder-plain/)
-- [fishfinder with display](fishfinder-display/)
-
-Two channel, monopole fishfinder:
-
-- [fishfinder](fishfinder/)
-
 
 ## Features
 
@@ -23,6 +14,23 @@ Two channel, monopole fishfinder:
 - Recording to SD card.
 - Voice message: after a recording you can record a voice message for
   some meta data.
+
+
+## Usage
+
+Read [user manual](docs/usage.md)
+
+
+## Sketches
+
+Current version:
+
+- [fishfinder](fishfinder/)
+
+Others:
+
+- [plain fishfinder](fishfinder-plain/)
+- [fishfinder with display](fishfinder-display/)
 
 
 ## Power consumption
