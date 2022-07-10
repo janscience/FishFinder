@@ -39,6 +39,9 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define UPDATE_ANALYSIS  0.2 // seconds
 #define ANALYSIS_WINDOW  0.2 // seconds
 
+#define MAX_TEXT_SWAP 5
+#define MAX_FILE_SHOWTIME 30*1000 // 30s
+
 // Pin assignment: ------------------------------------------------------------
 
 //#define CHANNEL_FRONT    A10 // input pin for front electrode
@@ -94,6 +97,8 @@ ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
 SDCard sdcard;
 SDWriter datafile(sdcard, aidata);
 SDWriter voicefile(sdcard, aidata);
+int SwapCounter;
+elapsedMillis DateFileTime;
 
 RTClock rtclock;
 
@@ -263,6 +268,7 @@ void toggleRecord(int id) {
     datafile.write();
     datafile.closeWave();
     blink.clear();
+    screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
     screen.clearText(SCREEN_TEXT_ACTION);
     screen.clearText(SCREEN_TEXT_FILETIME);
     Serial.println("  stopped recording\n");
@@ -271,7 +277,9 @@ void toggleRecord(int id) {
     reporttime.disable();
     String name = makeFileName();
     openFile(name);
+    SwapCounter = 0;
   }
+  DateFileTime = 0;
 }
 
 
@@ -285,6 +293,7 @@ void toggleVoiceMessage(int id) {
     voicefile.closeWave();
     voiceled.clear();
     aidata.stop();
+    screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
     screen.clearText(SCREEN_TEXT_ACTION);
     screen.clearText(SCREEN_TEXT_FILETIME);
     setupDataADC();
@@ -313,7 +322,9 @@ void toggleVoiceMessage(int id) {
     voiceled.setSingle();
     voiceled.blinkSingle(0, 1000);
     Serial.println("START VOICE MESSAGE");
+    SwapCounter = 0;
   }
+  DateFileTime = 0;
 }
 
 
@@ -334,6 +345,7 @@ void setupStorage() {
 
 
 void storeData() {
+  bool swap = false;
   if (datafile.pending()) {
     ssize_t samples = datafile.write();
     if (samples <= 0) {
@@ -368,6 +380,7 @@ void storeData() {
       char ts[6];
       datafile.fileTimeStr(ts);
       screen.writeText(SCREEN_TEXT_FILETIME, ts);
+      swap = true;
     }
   }
   if (voicefile.pending()) {
@@ -375,6 +388,16 @@ void storeData() {
     char ts[6];
     voicefile.fileTimeStr(ts);
     screen.writeText(SCREEN_TEXT_FILETIME, ts);
+    swap = true;
+  }
+  if (swap) {
+    SwapCounter++;
+    if (SwapCounter >= MAX_TEXT_SWAP) {
+      SwapCounter = 0;
+      screen.swapTextColors(SCREEN_TEXT_ACTION);
+      screen.rewriteText(SCREEN_TEXT_ACTION);
+    }
+    DateFileTime = 0;
   }
 }
 
@@ -428,6 +451,7 @@ void setup() {
   aidata.check();
   initScreen(screen);
   //AIsplashScreen(screen, aidata, SOFTWARE);
+  DateFileTime = 0;
   setupScreen();
   setupAudio();
   setupAnalysis();
@@ -444,4 +468,6 @@ void loop() {
   analysis.update();
   audio.update();
   blink.update();
+  if (DateFileTime > MAX_FILE_SHOWTIME)
+    reporttime.enable();
 }
