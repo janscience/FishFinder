@@ -41,8 +41,8 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 
 // Pin assignment: ------------------------------------------------------------
 
-#define CHANNEL_FRONT    A10 // input pin for front electrode
-//#define CHANNEL_FRONT    A2 // input pin for front electrode
+//#define CHANNEL_FRONT    A10 // input pin for front electrode
+#define CHANNEL_FRONT    A2 // input pin for front electrode
 #define CHANNEL_BACK     A2  // input pin for back electrode
 
 #define CHANNEL_VOICE    A0  // input pin for voice message
@@ -72,8 +72,8 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 // Text areas: ----------------------------------------------------------------
 
 #define SCREEN_TEXT_ACTION 0
-#define SCREEN_TEXT_DATETIME 1
-#define SCREEN_TEXT_FILENAME 2
+#define SCREEN_TEXT_DATEFILE 1
+#define SCREEN_TEXT_PEAKFREQ 2
 #define SCREEN_TEXT_FILETIME 3
 
 // ----------------------------------------------------------------------------
@@ -101,9 +101,9 @@ AnalysisChain analysis(aidata);
 Clipping clipping(0, &audio, 0, &analysis);
 //Correlation correlation(&audio, 1, &analysis);
 Spectrum spectrum(0, &analysis);
-ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_FILETIME, &analysis);
+ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_PEAKFREQ, &analysis);
 Plotting plotting(0, 0, &screen, 0, &analysis);
-ReportTime reporttime(&screen, 1, &rtclock, &analysis);
+ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 
 PushButtons buttons;
 Blink blink(RECORD_LED_PIN);
@@ -198,9 +198,9 @@ void AIsplashScreen(Display &screen,
 
 void setupScreen() {
   screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.85, 0.38, 1.0);   // action
-  screen.setTextArea(SCREEN_TEXT_DATETIME, 0.4, 0.85, 1.0, 1.0);    // data&time
-  screen.setTextArea(SCREEN_TEXT_FILENAME, 0.0, 0.7, 0.75, 0.85);   // file
-  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.7, 1.0, 0.85);    // file time
+  screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.85, 1.0, 1.0);  // date & file
+  screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.7, 0.3, 0.85);  // peak freq
+  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.7, 1.0, 0.85);  // file time
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.7);
   screen.setBacklightOn();
 }
@@ -209,8 +209,7 @@ void setupScreen() {
 void diskFull() {
   Serial.println("SD card probably not inserted or full");
   Serial.println();
-  screen.writeText(SCREEN_TEXT_FILENAME, "!NO SD CARD!");
-  screen.clearText(SCREEN_TEXT_ACTION);
+  screen.writeText(SCREEN_TEXT_ACTION, "!NO SD CARD!");
 }
 
 
@@ -248,7 +247,7 @@ bool openFile(const String &name) {
   datafile.start();
   // all screen writing 210ms:
   screen.writeText(SCREEN_TEXT_ACTION, "REC");
-  screen.writeText(SCREEN_TEXT_FILENAME, name.c_str());
+  screen.writeText(SCREEN_TEXT_DATEFILE, name.c_str());
   Serial.println(name);
   blink.setSingle();
   blink.blinkSingle(0, 1000);
@@ -264,11 +263,12 @@ void toggleRecord(int id) {
     datafile.write();
     datafile.closeWave();
     blink.clear();
-    screen.writeText(SCREEN_TEXT_ACTION, "last file:");
+    screen.clearText(SCREEN_TEXT_ACTION);
     screen.clearText(SCREEN_TEXT_FILETIME);
     Serial.println("  stopped recording\n");
   }
   else {
+    reporttime.disable();
     String name = makeFileName();
     openFile(name);
   }
@@ -285,7 +285,8 @@ void toggleVoiceMessage(int id) {
     voicefile.closeWave();
     voiceled.clear();
     aidata.stop();
-    screen.writeText(SCREEN_TEXT_ACTION, "last file:");
+    screen.clearText(SCREEN_TEXT_ACTION);
+    screen.clearText(SCREEN_TEXT_FILETIME);
     setupDataADC();
     aidata.start();
     aidata.report();
@@ -308,6 +309,7 @@ void toggleVoiceMessage(int id) {
     voicefile.setMaxFileSamples(0);
     voicefile.start();
     screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
+    screen.clearText(SCREEN_TEXT_PEAKFREQ);
     voiceled.setSingle();
     voiceled.blinkSingle(0, 1000);
     Serial.println("START VOICE MESSAGE");
