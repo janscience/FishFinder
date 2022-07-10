@@ -1,8 +1,9 @@
 #include <Spectrum.h>
 
 
-Spectrum::Spectrum(AnalysisChain *chain) :
+Spectrum::Spectrum(int channel, AnalysisChain *chain) :
   Analyzer(chain),
+  Channel(channel),
   Step(1),
   Offs(0),
   NBuffer(2*1024),
@@ -72,13 +73,13 @@ void Spectrum::stop() {
 
 
 void Spectrum::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
-  int c = 0;   // channel to be analyzed
   if (BufferIndex < NBuffer) {
     // copy data:
     size_t i = 0;
     for (i=Offs; i<nframes && BufferIndex < NBuffer; i+=Step) {
-      Buffer[BufferIndex++] = data[c][i]; // real
-      Buffer[BufferIndex++] = 0;          // imaginary
+      // TODO: Nyquist low-pass filter
+      Buffer[BufferIndex++] = data[Channel][i]; // real
+      Buffer[BufferIndex++] = 0;                // imaginary
     }
     Offs = i - nframes;
     //Serial.println(Offs);

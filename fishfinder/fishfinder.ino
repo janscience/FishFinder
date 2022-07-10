@@ -98,11 +98,11 @@ SDWriter voicefile(sdcard, aidata);
 RTClock rtclock;
 
 AnalysisChain analysis(aidata);
-Clipping clipping(&audio, 0, &analysis);
+Clipping clipping(0, &audio, 0, &analysis);
 //Correlation correlation(&audio, 1, &analysis);
-Spectrum spectrum(&analysis);
-ReportPeakFreq peakfreq(&screen, SCREEN_TEXT_FILETIME, &spectrum, &analysis);
-Plotting plotting(&screen, &analysis);
+Spectrum spectrum(0, &analysis);
+ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_FILETIME, &analysis);
+Plotting plotting(0, 0, &screen, 0, &analysis);
 ReportTime reporttime(&screen, 1, &rtclock, &analysis);
 
 PushButtons buttons;

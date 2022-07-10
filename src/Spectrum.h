@@ -16,8 +16,8 @@ class Spectrum : public Analyzer {
 
  public:
 
-  // Construct spectrum analyzer.
-  Spectrum(AnalysisChain *chain=0);
+  // Construct spectrum analyzer for specified channel.
+  Spectrum(int channel, AnalysisChain *chain=0);
 
   // Number of samples used for FFT.
   size_t nfft() const;
@@ -52,6 +52,7 @@ class Spectrum : public Analyzer {
   
 protected:
 
+  int Channel;
   size_t Step;
   size_t Offs;
   size_t NBuffer;

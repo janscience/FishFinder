@@ -18,7 +18,7 @@ class ReportPeakFreq : public Analyzer {
  public:
 
   // Construct peak frequency reporter.
-  ReportPeakFreq(Display *screen, int textarea, Spectrum *spec,
+  ReportPeakFreq(Spectrum *spec, Display *screen, int textarea,
 		 AnalysisChain *chain=0);
 
   // Start analyzer.

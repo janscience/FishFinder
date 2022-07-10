@@ -16,11 +16,13 @@ class Clipping : public Analyzer {
 
  public:
 
-  // Construct clipping analyzer.
-  Clipping(AnalysisChain *chain=0);
+  // Construct clipping analyzer for specified channel.
+  Clipping(int channel, AnalysisChain *chain=0);
 
-  // Construct clipping analyzer with audio feedback on channel feedback.
-  Clipping(AudioMonitor *audio, uint8_t feedback, AnalysisChain *chain=0);
+  // Construct clipping analyzer for specified channel with audio
+  // feedback on channel feedback.
+  Clipping(int channel, AudioMonitor *audio, uint8_t feedback,
+	   AnalysisChain *chain=0);
 
   // Set amplitude threshold for detecting clipped signals (0-1).
   // Default is 0.75.
@@ -48,6 +50,7 @@ class Clipping : public Analyzer {
 
  protected:
 
+  int Channel;
   sample_t ClipThreshold;
   float MuteThreshold;
   float ClippedAboveFrac;

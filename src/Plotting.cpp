@@ -2,8 +2,12 @@
 #include <Plotting.h>
 
 
-Plotting::Plotting(Display *screen, AnalysisChain *chain) :
+Plotting::Plotting(int channel, int color, Display *screen, int plotarea,
+		   AnalysisChain *chain) :
   Analyzer(chain),
+  Channel(channel),
+  Color(color),
+  PlotArea(plotarea),
   Screen(screen),
   Window(0.01),
   MaxCounter(1),
@@ -51,10 +55,10 @@ void Plotting::start(uint8_t nchannels, size_t nframes) {
 
 void Plotting::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
   if (Counter == 0) {
-    sample_t *pdata = data[0];
+    sample_t *pdata = data[Channel];
     /*
     if (nchannels > 1) {
-      // compute difference:
+      // compute difference: THIS SHOULD BE A SEPARATE ANALYZER!
       sample_t data_diff[nframes];
       //arm_sub_q15(data[0], data[1], data_diff, nframes);
       arm_add_q15(data[0], data[1], data_diff, nframes); XXX Overflow!!!
@@ -79,9 +83,7 @@ void Plotting::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
     }
     // plot:
     Screen->clearPlots();
-    Screen->plot(0, &(pdata[offs]), nw, 0);
-    if (nchannels > 1)
-      Screen->plot(0, &(data[1][offs]), nw, 1);
+    Screen->plot(PlotArea, &(pdata[offs]), nw, Color);
   }
   Counter++;
   if (Counter >= MaxCounter)

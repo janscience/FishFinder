@@ -1,8 +1,9 @@
 #include <Clipping.h>
 
 
-Clipping::Clipping(AnalysisChain *chain) :
+Clipping::Clipping(int channel, AnalysisChain *chain) :
   Analyzer(chain),
+  Channel(channel),
   ClipThreshold(0.75),
   MuteThreshold(10.0),
   ClippedAboveFrac(0.0),
@@ -13,9 +14,10 @@ Clipping::Clipping(AnalysisChain *chain) :
 }
 
 
-Clipping::Clipping(AudioMonitor *audio, uint8_t feedback,
+Clipping::Clipping(int channel, AudioMonitor *audio, uint8_t feedback,
 		   AnalysisChain *chain) :
   Analyzer(chain),
+  Channel(channel),
   ClipThreshold(0.75),
   MuteThreshold(10.0),
   ClippedAboveFrac(0.0),
@@ -46,13 +48,11 @@ void Clipping::start(uint8_t nchannels, size_t nframes) {
 void Clipping::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
   int nover = 0;
   int nunder = 0;
-  for (uint8_t c=0; c<nchannels; c++) {
-    for (size_t i=0; i<nframes; i++) {
-      if (data[c][i] > ClipThreshold)
-	nover++;
-      else if (data[c][i] < -ClipThreshold)
-	nunder++;
-    }
+  for (size_t i=0; i<nframes; i++) {
+    if (data[Channel][i] > ClipThreshold)
+      nover++;
+    else if (data[Channel][i] < -ClipThreshold)
+      nunder++;
   }
   ClippedAboveFrac = float(nover)/nframes/nchannels;
   ClippedBelowFrac = float(nunder)/nframes/nchannels;

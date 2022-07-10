@@ -16,8 +16,9 @@ class Plotting : public Analyzer {
 
  public:
 
-  // Construct data plotting.
-  Plotting(Display *screen, AnalysisChain *chain=0);
+  // Construct data plotting of specified channel in color.
+  Plotting(int channel, int color, Display *screen, int plotarea,
+	   AnalysisChain *chain=0);
 
   // Set width of plotting window to time seconds.
   // Default is 10ms.
@@ -46,6 +47,9 @@ class Plotting : public Analyzer {
 
  protected:
 
+  int Channel;
+  int Color;
+  int PlotArea;
   Display *Screen;
   float Window;
   int MaxCounter;
