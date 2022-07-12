@@ -28,6 +28,11 @@ Current version of the fishfinder software:
 
 - [fishfinder](fishfinder/)
 
+EOD waveform generator:
+
+- [eods](eods/)
+
+
 Others:
 
 - [plain fishfinder](fishfinder-plain/)
