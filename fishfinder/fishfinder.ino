@@ -51,8 +51,8 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define CHANNEL_VOICE    A0  // input pin for voice message
 
 #define AMPL_ENABLE_PIN   7  // pin for enabling an audio amplifier
-#define VOLUME_DOWN_PIN  26  // pin for push button for decreasing audio volume
-#define VOLUME_UP_PIN    27  // pin for push button for increasing audio volume
+#define DOWN_PIN         26  // pin for push button for decreasing audio volume/zoom
+#define UP_PIN           27  // pin for push button for increasing audio volume/zoom
 #define RECORD_PIN       28  // pin for push button starting and stopping a recording
 #define VOICE_PIN        29  // pin for push button starting and stopping a voice message
 
@@ -74,10 +74,11 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 
 // Text areas: ----------------------------------------------------------------
 
-#define SCREEN_TEXT_ACTION 0
-#define SCREEN_TEXT_DATEFILE 1
-#define SCREEN_TEXT_PEAKFREQ 2
-#define SCREEN_TEXT_FILETIME 3
+#define SCREEN_TEXT_ACTION    0
+#define SCREEN_TEXT_DATEFILE  1
+#define SCREEN_TEXT_PEAKFREQ  2
+#define SCREEN_TEXT_FILETIME  3
+#define SCREEN_TEXT_UPDOWN    4
 
 // ----------------------------------------------------------------------------
 
@@ -117,6 +118,9 @@ Blink voiceled(VOICE_LED_PIN);
 String prevname; // previous file name without increment
 String lastname; // last recorded file name
 int restarts = 0;
+int updownstate = 0;    // how to use up/down buttons
+const int maxupdownstates = 2; // number of different usages for up/down buttons
+char updownids[maxupdownstates][2] = {"V", "X"};
 
 #ifdef DEBUG
 #include <FreeStack.h>
@@ -206,6 +210,9 @@ void setupScreen() {
   screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.85, 1.0, 1.0);  // date & file
   screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.7, 0.3, 0.85);  // peak freq
   screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.7, 1.0, 0.85);  // file time
+  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.7, 1.0, 0.85);    // up/down status
+  screen.swapTextColors(SCREEN_TEXT_UPDOWN);
+  screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.7);
   screen.setBacklightOn();
 }
@@ -284,53 +291,87 @@ void toggleRecord(int id) {
 
 
 void toggleVoiceMessage(int id) {
-  if (datafile.isOpen())       // recording in progress
-    return;
-  if (lastname.length() == 0)  // no recording yet
-    return;
-  if (voicefile.isOpen()) {    // stop voice message
-    voicefile.write();
-    voicefile.closeWave();
-    voiceled.clear();
-    aidata.stop();
-    screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
-    screen.clearText(SCREEN_TEXT_ACTION);
-    screen.clearText(SCREEN_TEXT_FILETIME);
-    setupDataADC();
-    aidata.start();
-    aidata.report();
-    audio.play();
-    analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
-    Serial.println("STOP VOICE MESSAGE");
+  if (reporttime.enabled()) {
+    // change up/down switch usage:
+    updownstate++;
+    if (updownstate >= maxupdownstates)
+      updownstate = 0;
+    screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
   }
-  else {                       // start voice message
-    analysis.stop();
-    audio.pause();
-    aidata.stop();
-    screen.clearPlots();
-    setupVoiceADC();
-    aidata.start();
-    aidata.report();
-    String voicename = lastname;
-    voicename.remove(voicename.indexOf(".wav"));
-    voicename += "-message.wav";
-    voicefile.openWave(voicename.c_str());
-    voicefile.setMaxFileSamples(0);
-    voicefile.start();
-    screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
-    screen.clearText(SCREEN_TEXT_PEAKFREQ);
-    voiceled.setSingle();
-    voiceled.blinkSingle(0, 1000);
-    Serial.println("START VOICE MESSAGE");
-    SwapCounter = 0;
+  else {
+    // voice message only as long last file name is shown:
+    if (datafile.isOpen())       // recording in progress
+      return;
+    if (lastname.length() == 0)  // no recording yet
+      return;
+    if (voicefile.isOpen()) {    // stop voice message
+      voicefile.write();
+      voicefile.closeWave();
+      voiceled.clear();
+      aidata.stop();
+      screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
+      screen.clearText(SCREEN_TEXT_ACTION);
+      screen.clearText(SCREEN_TEXT_FILETIME);
+      setupDataADC();
+      aidata.start();
+      aidata.report();
+      audio.play();
+      analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
+      Serial.println("STOP VOICE MESSAGE");
+    }
+    else {                       // start voice message
+      analysis.stop();
+      audio.pause();
+      aidata.stop();
+      screen.clearPlots();
+      setupVoiceADC();
+      aidata.start();
+      aidata.report();
+      String voicename = lastname;
+      voicename.remove(voicename.indexOf(".wav"));
+      voicename += "-message.wav";
+      voicefile.openWave(voicename.c_str());
+      voicefile.setMaxFileSamples(0);
+      voicefile.start();
+      screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
+      screen.clearText(SCREEN_TEXT_PEAKFREQ);
+      voiceled.setSingle();
+      voiceled.blinkSingle(0, 1000);
+      Serial.println("START VOICE MESSAGE");
+      SwapCounter = 0;
+    }
+    DateFileTime = 0;
   }
-  DateFileTime = 0;
+}
+
+
+void switchUp(int id) {
+  switch (updownstate) {
+  case 1:
+    plotting.zoomIn();
+    break;
+  default:
+    audio.volumeUp();
+  }
+}
+
+
+void switchDown(int id) {
+  switch (updownstate) {
+  case 1:
+    plotting.zoomOut();
+    break;
+  default:
+    audio.volumeDown();
+  }
 }
 
 
 void setupButtons() {
-  buttons.add(RECORD_PIN, INPUT_PULLUP, toggleRecord);
-  buttons.add(VOICE_PIN, INPUT_PULLUP, toggleVoiceMessage);
+  buttons.add(RECORD_PIN, INPUT_PULLUP, 0, toggleRecord);
+  buttons.add(VOICE_PIN, INPUT_PULLUP, 0, toggleVoiceMessage);
+  buttons.add(UP_PIN, INPUT_PULLUP, switchUp);
+  buttons.add(DOWN_PIN, INPUT_PULLUP, switchDown);
 }
 
 
@@ -407,7 +448,7 @@ void setupAudio() {
   audio.setMixer(&AudioPlayBuffer::assign);
   AudioMemory(AUDIO_BLOCKS);
   audio.setupAmp(AMPL_ENABLE_PIN);
-  audio.setupVolume(0.02, VOLUME_UP_PIN, VOLUME_DOWN_PIN);
+  audio.setupVolume(0.02);
   audio.setLowpass(2);
   audio.addFeedback(0.4, 6*440.0, 0.17);
   //audio.addFeedback(0.2, 2*440.0, 0.2);
@@ -468,6 +509,8 @@ void loop() {
   analysis.update();
   audio.update();
   blink.update();
-  if (DateFileTime > MAX_FILE_SHOWTIME)
+  if (DateFileTime > MAX_FILE_SHOWTIME) {
     reporttime.enable();
+    screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+  }
 }
