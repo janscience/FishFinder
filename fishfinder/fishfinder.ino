@@ -18,7 +18,7 @@
 #include <PushButtons.h>
 #include <Blink.h>
 
-#define DEBUG
+//#define DEBUG
 
 #define SOFTWARE "FishFinder V1.0"
 
@@ -44,8 +44,8 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 
 // Pin assignment: ------------------------------------------------------------
 
-//#define CHANNEL_FRONT    A10 // input pin for front electrode
-#define CHANNEL_FRONT    A2 // input pin for front electrode
+#define CHANNEL_FRONT    A10 // input pin for front electrode
+//#define CHANNEL_FRONT    A2 // input pin for front electrode
 #define CHANNEL_BACK     A2  // input pin for back electrode
 
 #define CHANNEL_VOICE    A0  // input pin for voice message
