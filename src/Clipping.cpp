@@ -10,7 +10,8 @@ Clipping::Clipping(int channel, AnalysisChain *chain) :
   ClippedBelowFrac(0.0),
   ClippedFrac(0.0),
   Audio(0),
-  AudioFeedback(0) {
+  AudioFeedbackChannel(0),
+  AudioFeedback(true) {
 }
 
 
@@ -24,7 +25,8 @@ Clipping::Clipping(int channel, AudioMonitor *audio, uint8_t feedback,
   ClippedBelowFrac(0.0),
   ClippedFrac(0.0),
   Audio(audio),
-  AudioFeedback(feedback) {
+  AudioFeedbackChannel(feedback),
+  AudioFeedback(true) {
 }
 
 
@@ -58,12 +60,23 @@ void Clipping::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
   ClippedBelowFrac = float(nunder)/nframes/nchannels;
   ClippedFrac = ClippedAboveFrac + ClippedBelowFrac;
   if (Audio != 0) {
-    Audio->setFeedback(ClippedFrac, AudioFeedback);
+    if (AudioFeedback)
+      Audio->setFeedback(ClippedFrac, AudioFeedbackChannel);
     if (ClippedFrac > MuteThreshold)
       Audio->pause();
     else
       Audio->play();
   }
+}
+
+
+void Clipping::setFeedback(bool feedback) {
+  AudioFeedback = feedback;
+}
+
+
+void Clipping::toggleFeedback() {
+  AudioFeedback = !AudioFeedback;
 }
 
 

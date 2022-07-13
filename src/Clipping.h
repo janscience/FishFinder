@@ -38,6 +38,12 @@ class Clipping : public Analyzer {
   // Check for clipping.
   virtual void analyze(sample_t **data, uint8_t nchannels, size_t nframes);
 
+  // No audio feedback if m is set to true.
+  void setFeedback(bool feedback=true);
+
+  // Toggle audio feedback.
+  void toggleFeedback();
+
   // Fraction of data points above clipping threshold.
   float clippedAbove() const;
 
@@ -57,7 +63,8 @@ class Clipping : public Analyzer {
   float ClippedBelowFrac;
   float ClippedFrac;
   AudioMonitor *Audio;
-  uint8_t AudioFeedback;
+  uint8_t AudioFeedbackChannel;
+  bool AudioFeedback;
   
 };
 

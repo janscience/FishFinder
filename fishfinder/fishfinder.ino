@@ -292,11 +292,16 @@ void toggleRecord(int id) {
 
 void toggleVoiceMessage(int id) {
   if (reporttime.enabled()) {
-    // change up/down switch usage:
-    updownstate++;
-    if (updownstate >= maxupdownstates)
-      updownstate = 0;
-    screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+    if (buttons.button(id)->previousDuration() > 500) {
+      clipping.toggleFeedback();
+    }
+    else {
+      // change up/down switch usage:
+      updownstate++;
+      if (updownstate >= maxupdownstates)
+        updownstate = 0;
+      screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+    }
   }
   else {
     // voice message only as long last file name is shown:
@@ -458,7 +463,8 @@ void setupAudio() {
 void setupAnalysis() {
   //clipping.disable();
   //correlation.disable();
-  clipping.setClipThreshold(0.9);   // make it configurable!
+  //clipping.setClipThreshold(0.9);   // make it configurable!
+  clipping.setClipThreshold(0.8);   // make it configurable!
   clipping.setMuteThreshold(0.7);   // make it configurable!
   spectrum.setNFFT(4096);
   spectrum.setResolution(3.0);
