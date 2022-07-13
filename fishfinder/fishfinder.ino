@@ -206,14 +206,14 @@ void AIsplashScreen(Display &screen,
 
 
 void setupScreen() {
-  screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.85, 0.38, 1.0);   // action
-  screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.85, 1.0, 1.0);  // date & file
-  screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.7, 0.3, 0.85);  // peak freq
-  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.7, 1.0, 0.85);  // file time
-  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.7, 1.0, 0.85);    // up/down status
+  screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.87, 0.38, 1.0);
+  screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.87, 1.0, 1.0);
+  screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.72, 0.3, 0.87);
+  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.72, 1.0, 0.87);
+  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.94, 0.72, 1.0, 0.87);
   screen.swapTextColors(SCREEN_TEXT_UPDOWN);
   screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
-  screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.7);
+  screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.72);
   screen.setBacklightOn();
 }
 

@@ -27,11 +27,13 @@ void Plotting::zoomIn() {
   Window *= 0.5;
   if (Window < 0.001)
     Window = 0.001;
+  Counter = 0;
 }
 
 
 void Plotting::zoomOut() {
   Window *= 2.0;
+  Counter = 0;
 }
 
 
