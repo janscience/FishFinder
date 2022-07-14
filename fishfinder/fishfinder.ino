@@ -5,7 +5,6 @@
 #include <SDWriter.h>
 #include <Display.h>
 #include <ST7789_t3.h>
-#include <fonts/FreeSans10pt7b.h>
 #include <fonts/FreeSans12pt7b.h>
 #include <AnalysisChain.h>
 #include <Clipping.h>
@@ -80,6 +79,7 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define SCREEN_TEXT_FILETIME  3
 #define SCREEN_TEXT_UPDOWN    4
 #define SCREEN_TEXT_CLIPPING  5
+#define SCREEN_TEXT_TIME      6
 
 // ----------------------------------------------------------------------------
 
@@ -156,54 +156,12 @@ void setupVoiceADC() {
 
 
 void initScreen(Display &screen) {
-  screen.setBacklightPin(TFT_BL_PIN);
   tft.init(240, 320);
   DisplayWrapper<ST7789_t3> *tftscreen = new DisplayWrapper<ST7789_t3>(&tft);
   screen.init(tftscreen, TFT_ROTATION, true);
   Serial.println();
   screen.setDefaultFont(FreeSans12pt7b);
-  screen.setTitleFont(FreeSans12pt7b);
-  screen.setSmallFont(FreeSans10pt7b);
   screen.clear();
-}
-
-
-void AIsplashScreen(Display &screen,
-		    const ContinuousADC &aidata, const char *title) {
-  char msg[100];
-  String convspeed = aidata.conversionSpeedShortStr();
-  String samplspeed = aidata.samplingSpeedShortStr();
-  char chans0[50];
-  char chans1[50];
-  aidata.channels(0, chans0);
-  aidata.channels(1, chans1);
-  if (chans0[0] == '\0')
-    strcpy(chans0, "-");
-  if (chans1[0] == '\0')
-    strcpy(chans1, "-");
-  float bt = aidata.bufferTime();
-  char bts[20];
-  if (bt < 1.0)
-    sprintf(bts, "%.0fms\n", 1000.0*bt);
-  else
-    sprintf(bts, "%.2fs\n", bt);
-  sprintf(msg, "%.0fkHz\n%dbit\n%d,%s,%s\n%s\n%s\n%s",
-          0.001*aidata.rate(), aidata.resolution(), aidata.averaging(),
-          convspeed.c_str(), samplspeed.c_str(), chans0, chans1, bts);
-  screen.setTextArea(0, 0.0, 0.75, 1.0, 0.95);
-  screen.setTitleFont(0);
-  screen.setTextArea(1, 0.0, 0.0, 0.4, 0.7, true);
-  screen.setSmallFont(1);
-  screen.setTextArea(2, 0.4, 0.0, 1.0, 0.7, true);
-  screen.setSmallFont(2);
-  screen.writeText(0, title);
-  screen.writeText(1, "rate:\nres.:\nspeed:\nADC0:\nADC1\nbuffer:");
-  screen.writeText(2, msg);
-  screen.fadeBacklightOn();
-  delay(1500);
-  screen.fadeBacklightOff();
-  screen.clear();
-  screen.clearText();
 }
 
 
@@ -493,6 +451,7 @@ void setupAnalysis() {
 // ---------------------------------------------------------------------------
 
 void setup() {
+  screen.setBacklightPin(TFT_BL_PIN);
   blink.switchOn();
   voiceled.switchOn();
   Serial.begin(9600);
@@ -512,7 +471,6 @@ void setup() {
   setupStorage();
   aidata.check();
   initScreen(screen);
-  //AIsplashScreen(screen, aidata, SOFTWARE);
   DateFileTime = 0;
   setupScreen();
   setupAudio();
