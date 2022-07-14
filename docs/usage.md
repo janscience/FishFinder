@@ -20,8 +20,23 @@
    the recording button blinks and on the display "REC" indicates the
    ongoing recording, the file name is displayed and the current
    duration of the recording in seconds.
-4. After minimum 10s press the record button to stop the recording.
+4. To stop the recording press the record button (try to record at
+   least for 10s).
 5. Press the green voice button to start recording a voice message.
 6. Press the voice button to stop the voice message.
 7. Find and record the next fish.
 8. Switch the fishfinder off via the on/off switch.
+
+
+## Switches
+
+- Red record switch: start and stop a recording.
+- Green voice message switch:
+  - Within 30s after a recording was stopped (as long as the filename
+    is shown on the display): start and stop a voice message.
+  - after 30s of a recording or voice message:
+    - brief push: toggle between volume and zoom.
+    - push for min. half a second: toggle audio feedback beeps on clipping.
+- volume switch:
+  - increase or decrease audio volume (`V` indicator on top right of display)
+  - zoom in or out (`X` indicator)
