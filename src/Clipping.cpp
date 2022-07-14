@@ -80,6 +80,11 @@ void Clipping::toggleFeedback() {
 }
 
 
+bool Clipping::feedbackEnabled() const {
+  return AudioFeedback;
+}
+
+
 float Clipping::clippedAbove() const {
   return ClippedAboveFrac;
 }

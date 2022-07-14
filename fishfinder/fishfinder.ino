@@ -44,8 +44,8 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 
 // Pin assignment: ------------------------------------------------------------
 
-#define CHANNEL_FRONT    A10 // input pin for front electrode
-//#define CHANNEL_FRONT    A2 // input pin for front electrode
+//#define CHANNEL_FRONT    A10 // input pin for front electrode
+#define CHANNEL_FRONT    A2 // input pin for front electrode
 #define CHANNEL_BACK     A2  // input pin for back electrode
 
 #define CHANNEL_VOICE    A0  // input pin for voice message
@@ -79,6 +79,7 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define SCREEN_TEXT_PEAKFREQ  2
 #define SCREEN_TEXT_FILETIME  3
 #define SCREEN_TEXT_UPDOWN    4
+#define SCREEN_TEXT_CLIPPING  5
 
 // ----------------------------------------------------------------------------
 
@@ -121,6 +122,7 @@ int restarts = 0;
 int updownstate = 0;    // how to use up/down buttons
 const int maxupdownstates = 2; // number of different usages for up/down buttons
 char updownids[maxupdownstates][2] = {"V", "X"};
+char clippingids[maxupdownstates][2] = {"", "C"};
 
 #ifdef DEBUG
 #include <FreeStack.h>
@@ -154,6 +156,7 @@ void setupVoiceADC() {
 
 
 void initScreen(Display &screen) {
+  screen.setBacklightPin(TFT_BL_PIN);
   tft.init(240, 320);
   DisplayWrapper<ST7789_t3> *tftscreen = new DisplayWrapper<ST7789_t3>(&tft);
   screen.init(tftscreen, TFT_ROTATION, true);
@@ -161,7 +164,6 @@ void initScreen(Display &screen) {
   screen.setDefaultFont(FreeSans12pt7b);
   screen.setTitleFont(FreeSans12pt7b);
   screen.setSmallFont(FreeSans10pt7b);
-  screen.setBacklightPin(TFT_BL_PIN);
   screen.clear();
 }
 
@@ -210,9 +212,13 @@ void setupScreen() {
   screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.87, 1.0, 1.0);
   screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.72, 0.3, 0.87);
   screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.72, 1.0, 0.87);
-  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.94, 0.72, 1.0, 0.87);
+  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
+  screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.79, 0.94, 0.87, true);
   screen.swapTextColors(SCREEN_TEXT_UPDOWN);
+  screen.swapTextColors(SCREEN_TEXT_CLIPPING);
   screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+  screen.writeText(SCREEN_TEXT_CLIPPING,
+                   clippingids[clipping.feedbackEnabled()]);
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.72);
   screen.setBacklightOn();
 }
@@ -267,7 +273,13 @@ bool openFile(const String &name) {
 }
 
 
+void pressRecord(int id) {
+  Serial.println("PRESSED");
+}
+
+
 void toggleRecord(int id) {
+  Serial.println("RELEASED");
   if (voicefile.isOpen())  // voice message in progress
     return;
   // on button press:
@@ -294,6 +306,8 @@ void toggleVoiceMessage(int id) {
   if (reporttime.enabled()) {
     if (buttons.button(id)->previousDuration() > 500) {
       clipping.toggleFeedback();
+      screen.writeText(SCREEN_TEXT_CLIPPING,
+                       clippingids[clipping.feedbackEnabled()]);
     }
     else {
       // change up/down switch usage:
@@ -373,6 +387,7 @@ void switchDown(int id) {
 
 
 void setupButtons() {
+  //buttons.add(RECORD_PIN, INPUT_PULLUP, pressRecord, toggleRecord);
   buttons.add(RECORD_PIN, INPUT_PULLUP, 0, toggleRecord);
   buttons.add(VOICE_PIN, INPUT_PULLUP, 0, toggleVoiceMessage);
   buttons.add(UP_PIN, INPUT_PULLUP, switchUp);
@@ -517,6 +532,8 @@ void loop() {
   blink.update();
   if (DateFileTime > MAX_FILE_SHOWTIME) {
     reporttime.enable();
+    screen.writeText(SCREEN_TEXT_CLIPPING,
+                     clippingids[clipping.feedbackEnabled()]);
     screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
-  }
+ }
 }

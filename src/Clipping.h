@@ -44,6 +44,9 @@ class Clipping : public Analyzer {
   // Toggle audio feedback.
   void toggleFeedback();
 
+  // True if audio feedback is enabled.
+  bool feedbackEnabled() const;
+
   // Fraction of data points above clipping threshold.
   float clippedAbove() const;
 
