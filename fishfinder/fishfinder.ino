@@ -109,7 +109,7 @@ Clipping clipping(0, &audio, 0, &analysis);
 //Correlation correlation(&audio, 1, &analysis);
 Spectrum spectrum(0, &analysis);
 ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_PEAKFREQ, &analysis);
-Plotting plotting(0, 0, &screen, 0, &analysis);
+Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, &analysis);
 ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 
 PushButtons buttons;
@@ -172,6 +172,7 @@ void setupScreen() {
   screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.72, 1.0, 0.87);
   screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
   screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.79, 0.94, 0.87, true);
+  screen.setTextArea(SCREEN_TEXT_TIME, 0.0, 0.0, 0.25, 0.13);
   screen.swapTextColors(SCREEN_TEXT_UPDOWN);
   screen.swapTextColors(SCREEN_TEXT_CLIPPING);
   screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
@@ -231,13 +232,7 @@ bool openFile(const String &name) {
 }
 
 
-void pressRecord(int id) {
-  Serial.println("PRESSED");
-}
-
-
 void toggleRecord(int id) {
-  Serial.println("RELEASED");
   if (voicefile.isOpen())  // voice message in progress
     return;
   // on button press:
@@ -345,7 +340,6 @@ void switchDown(int id) {
 
 
 void setupButtons() {
-  //buttons.add(RECORD_PIN, INPUT_PULLUP, pressRecord, toggleRecord);
   buttons.add(RECORD_PIN, INPUT_PULLUP, 0, toggleRecord);
   buttons.add(VOICE_PIN, INPUT_PULLUP, 0, toggleVoiceMessage);
   buttons.add(UP_PIN, INPUT_PULLUP, switchUp);
