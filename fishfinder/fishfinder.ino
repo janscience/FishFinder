@@ -43,8 +43,8 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 
 // Pin assignment: ------------------------------------------------------------
 
-//#define CHANNEL_FRONT    A10 // input pin for front electrode
-#define CHANNEL_FRONT    A2 // input pin for front electrode
+#define CHANNEL_FRONT    A10 // input pin for front electrode
+//#define CHANNEL_FRONT    A2 // input pin for front electrode
 #define CHANNEL_BACK     A2  // input pin for back electrode
 
 #define CHANNEL_VOICE    A0  // input pin for voice message
@@ -420,7 +420,7 @@ void setupAudio() {
   audio.setMixer(&AudioPlayBuffer::assign);
   AudioMemory(AUDIO_BLOCKS);
   audio.setupAmp(AMPL_ENABLE_PIN);
-  audio.setupVolume(0.02);
+  audio.setupVolume(0.1);
   audio.setLowpass(2);
   audio.addFeedback(0.4, 6*440.0, 0.17);
   //audio.addFeedback(0.2, 2*440.0, 0.2);
