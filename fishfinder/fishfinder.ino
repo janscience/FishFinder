@@ -17,9 +17,9 @@
 #include <PushButtons.h>
 #include <Blink.h>
 
-//#define DEBUG
+#define DEBUG
 
-#define SOFTWARE "FishFinder V1.0"
+#define SOFTWARE "FishFinder V1.1"
 
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)

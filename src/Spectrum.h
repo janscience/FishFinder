@@ -55,9 +55,11 @@ protected:
   int Channel;
   size_t Step;
   size_t Offs;
-  size_t NBuffer;
+  size_t NFFT;
   size_t BufferIndex;
   sample_t *Buffer;
+  sample_t *Window;
+  float X;
   q15_t *Power;
   float Resolution;
   mutable bool Changed;
