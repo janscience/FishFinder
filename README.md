@@ -36,12 +36,6 @@ EOD waveform generator:
 - [eods](eods/)
 
 
-Others:
-
-- [plain fishfinder](fishfinder-plain/)
-- [fishfinder with display](fishfinder-display/)
-
-
 ## Power consumption
 
 Without amplifier:
