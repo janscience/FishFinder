@@ -57,8 +57,10 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 
 // LEDs: ----------------------------------------------------------------------
 
-#define RECORD_LED_PIN   11
-#define VOICE_LED_PIN    12
+//#define RECORD_LED_PIN   11
+//#define VOICE_LED_PIN    12
+#define RECORD_LED_PIN   -1
+#define VOICE_LED_PIN    -1
 
 // TFT display: ---------------------------------------------------------------
 

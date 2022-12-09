@@ -16,14 +16,14 @@
 
 1. Switch it on with the on/off switch.
 2. Find a fish. You may adjust the audio volume via the volume up/down button.
-3. Press the red record button to start a recording. During the recording
-   the recording button blinks and on the display "REC" indicates the
-   ongoing recording, the file name is displayed and the current
-   duration of the recording in seconds.
-4. To stop the recording press the record button (try to record at
+3. Press the red record button to start a recording. During the
+   recording a blinking "REC" on the display indicates the ongoing
+   recording, the file name and the current duration of the recording
+   in seconds are displayed.
+4. To stop the recording press the record button again (try to record at
    least for 10s).
 5. Press the green voice button to start recording a voice message.
-6. Press the voice button to stop the voice message.
+6. Press the voice button to stop recording the voice message.
 7. Find and record the next fish.
 8. Switch the fishfinder off via the on/off switch.
 
@@ -35,8 +35,20 @@
   - Within 30s after a recording was stopped (as long as the filename
     is shown on the display): start and stop a voice message.
   - after 30s of a recording or voice message:
-    - brief push: toggle between volume and zoom.
-    - push for min. half a second: toggle audio feedback beeps on clipping.
-- volume switch:
+    - brief push: toggle between volume (`V` indicator on top right of
+      display) and zoom (`X` indicator on top right of display).
+    - push for minimum half a second: toggle audio feedback beeps on
+      clipping (`C` indicator on top right of display).
+- blue volume switches:
   - increase or decrease audio volume (`V` indicator on top right of display)
-  - zoom in or out (`X` indicator)
+  - zoom time axis in or out (`X` indicator)
+
+
+## Get the data
+
+- Open the fishfinder
+- Take out the SD card
+- Copy the data from SD card to your computer
+- Remove all files from SD card
+- Insert SD card back onto Teensy
+- Close fishfinder housing.
