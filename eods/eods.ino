@@ -100,6 +100,7 @@ void setup() {
   buttons.add(AMPL_UP_PIN, INPUT_PULLUP, amplitude_up);
   buttons.add(AMPL_DOWN_PIN, INPUT_PULLUP, amplitude_down);
   buttons.add(WAVEFORM_PIN, INPUT_PULLUP, next_fish);
+  delay(10);
   fish = 0;
   start_fish();
 }

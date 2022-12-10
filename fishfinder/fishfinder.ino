@@ -346,6 +346,7 @@ void setupButtons() {
   buttons.add(VOICE_PIN, INPUT_PULLUP, 0, toggleVoiceMessage);
   buttons.add(UP_PIN, INPUT_PULLUP, switchUp);
   buttons.add(DOWN_PIN, INPUT_PULLUP, switchDown);
+  delay(10);
 }
 
 
@@ -484,7 +485,7 @@ void loop() {
   analysis.update();
   audio.update();
   blink.update();
-  if (DateFileTime > MAX_FILE_SHOWTIME) {
+  if ((DateFileTime > MAX_FILE_SHOWTIME) && ! reporttime.enabled()) {
     reporttime.enable();
     screen.writeText(SCREEN_TEXT_CLIPPING,
                      clippingids[clipping.feedbackEnabled()]);
