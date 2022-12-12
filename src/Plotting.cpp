@@ -14,12 +14,13 @@ const float Plotting::Windows[Plotting::MaxWindows] = {0.0001,
 
 
 Plotting::Plotting(int channel, int color, Display *screen, int plotarea,
-		   int textarea, AnalysisChain *chain) :
+		   int timearea, int amplitudearea, AnalysisChain *chain) :
   Analyzer(chain),
   Channel(channel),
   Color(color),
   PlotArea(plotarea),
-  TextArea(textarea),
+  TimeArea(timearea),
+  AmplitudeArea(amplitudearea),
   Screen(screen),
   Window(0.01),
   WindowIndex(6),
@@ -126,13 +127,19 @@ void Plotting::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
     Screen->setPlotZoom(PlotArea, AmplitudeFac);
     Screen->plot(PlotArea, &(pdata[offs]), nw, Color);
     // indicate time window:
-    if (TextArea >= 0) {
+    if (TimeArea >= 0) {
       char ts[10];
       if (Window >= 0.001)
 	sprintf(ts, "%.0fms", 1000.0*Window);
       else
 	sprintf(ts, "%.1fms", 1000.0*Window);
-      Screen->writeText(TextArea, ts);
+      Screen->writeText(TimeArea, ts);
+    }
+    // indicate zoom factor:
+    if (AmplitudeArea >= 0) {
+      char zs[10];
+      sprintf(zs, "x%.0f", Screen->plotZoom(PlotArea));
+      Screen->writeText(AmplitudeArea, zs);
     }
   }
   Counter++;

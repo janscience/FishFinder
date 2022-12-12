@@ -93,6 +93,7 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define SCREEN_TEXT_UPDOWN    4
 #define SCREEN_TEXT_CLIPPING  5
 #define SCREEN_TEXT_TIME      6
+#define SCREEN_TEXT_AMPLITUDE 7
 
 // ----------------------------------------------------------------------------
 
@@ -128,7 +129,7 @@ Correlation correlation(&audio, 1, &analysis);
 Spectrum spectrum(0, &analysis);
 ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_PEAKFREQ, &analysis);
 #endif
-Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, &analysis);
+Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE, &analysis);
 ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 
 PushButtons buttons;
@@ -195,6 +196,7 @@ void setupScreen() {
   screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.72, 1.0, 0.87);
   screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
   screen.setTextArea(SCREEN_TEXT_TIME, 0.0, 0.0, 0.25, 0.13);
+  screen.setTextArea(SCREEN_TEXT_AMPLITUDE, 0.0, 0.57, 0.15, 0.13);
   screen.swapTextColors(SCREEN_TEXT_UPDOWN);
   screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
 #ifdef DETECT_CLIPPING

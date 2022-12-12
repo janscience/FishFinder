@@ -17,8 +17,10 @@ class Plotting : public Analyzer {
  public:
 
   // Construct data plotting of specified channel in color.
+  // If timearea >= 0 then indicate the width of the plot window.
+  // If amplarea >= 0 then indicate the amplitude zoom factor.
   Plotting(int channel, int color, Display *screen, int plotarea,
-	   int textarea, AnalysisChain *chain=0);
+	   int timearea, int amplitudearea, AnalysisChain *chain=0);
 
   // The width of the plotting window in seconds.
   float window() const;
@@ -59,7 +61,8 @@ class Plotting : public Analyzer {
   int Channel;
   int Color;
   int PlotArea;
-  int TextArea;
+  int TimeArea;
+  int AmplitudeArea;
   Display *Screen;
   float Window;
   int WindowIndex;
