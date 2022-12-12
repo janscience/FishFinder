@@ -2,7 +2,15 @@
 #include <Plotting.h>
 
 
-const float Plotting::Windows[Plotting::MaxWindows] = {0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05};
+const float Plotting::Windows[Plotting::MaxWindows] = {0.0001,
+						       0.0002,
+						       0.0005,
+						       0.001,
+						       0.002,
+						       0.005,
+						       0.01,
+						       0.02,
+						       0.05};  // in seconds
 
 
 Plotting::Plotting(int channel, int color, Display *screen, int plotarea,
@@ -15,6 +23,7 @@ Plotting::Plotting(int channel, int color, Display *screen, int plotarea,
   Screen(screen),
   Window(0.01),
   WindowIndex(6),
+  AmplitudeFac(1.0),
   MaxCounter(1),
   Counter(0),
   Align(-1.0) {
@@ -33,7 +42,7 @@ void Plotting::setWindow(float time) {
 }
 
 
-void Plotting::zoomIn() {
+void Plotting::zoomTimeIn() {
   if (WindowIndex > 0)
     WindowIndex--;
   Window = Windows[WindowIndex];
@@ -41,11 +50,25 @@ void Plotting::zoomIn() {
 }
 
 
-void Plotting::zoomOut() {
+void Plotting::zoomTimeOut() {
   WindowIndex++;
   if (WindowIndex >= MaxWindows)
     WindowIndex = MaxWindows-1;
   Window = Windows[WindowIndex];
+  Counter = 0;
+}
+
+
+void Plotting::zoomAmplitudeIn() {
+  if (AmplitudeFac < 1 << 12)
+    AmplitudeFac *= 2;
+  Counter = 0;
+}
+
+
+void Plotting::zoomAmplitudeOut() {
+  if (AmplitudeFac > 1.0)
+    AmplitudeFac *= 0.5;
   Counter = 0;
 }
 
@@ -100,6 +123,7 @@ void Plotting::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
     }
     // plot:
     Screen->clearPlots();
+    Screen->setPlotZoom(PlotArea, AmplitudeFac);
     Screen->plot(PlotArea, &(pdata[offs]), nw, Color);
     // indicate time window:
     if (TextArea >= 0) {

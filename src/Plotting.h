@@ -27,11 +27,17 @@ class Plotting : public Analyzer {
   // Default is 10ms.
   void setWindow(float time);
 
-  // Make plot window smaller by a factor of two.
-  void zoomIn();
+  // Make width of plot window smaller by a factor of two.
+  void zoomTimeIn();
 
-  // Make plot window larger by a factor of two.
-  void zoomOut();
+  // Make width plot window larger by a factor of two.
+  void zoomTimeOut();
+
+  // Make plotted amplitude larger by a factor of two.
+  void zoomAmplitudeIn();
+
+  // Make plotted amplitude smaller by a factor of two.
+  void zoomAmplitudeOut();
 
   // Plot only on every skip-th call of analyze().
   // Default is 1, i.e. plot on every call.
@@ -59,6 +65,7 @@ class Plotting : public Analyzer {
   int WindowIndex;
   static const int MaxWindows = 9;
   static const float Windows[MaxWindows];
+  float AmplitudeFac;
   int MaxCounter;
   int Counter;
   float Align;

@@ -139,8 +139,8 @@ String prevname; // previous file name without increment
 String lastname; // last recorded file name
 int restarts = 0;
 int updownstate = 0;    // how to use up/down buttons
-const int maxupdownstates = 2; // number of different usages for up/down buttons
-char updownids[maxupdownstates][2] = {"V", "X"};
+const int maxupdownstates = 3; // number of different usages for up/down buttons
+char updownids[maxupdownstates][2] = {"V", "X", "Y"};
 #ifdef DETECT_CLIPPING
 char clippingids[2][2] = {"", "C"};
 #endif
@@ -350,8 +350,11 @@ void toggleVoiceMessage(int id) {
 
 void switchUp(int id) {
   switch (updownstate) {
+  case 2:
+    plotting.zoomAmplitudeIn();
+    break;
   case 1:
-    plotting.zoomIn();
+    plotting.zoomTimeIn();
     break;
   default:
     audio.volumeUp();
@@ -361,8 +364,11 @@ void switchUp(int id) {
 
 void switchDown(int id) {
   switch (updownstate) {
+  case 2:
+    plotting.zoomAmplitudeOut();
+    break;
   case 1:
-    plotting.zoomOut();
+    plotting.zoomTimeOut();
     break;
   default:
     audio.volumeDown();
@@ -473,7 +479,7 @@ void setupAnalysis() {
 #endif
   plotting.setSkipping(4);
   plotting.setWindow(0.01);
-  plotting.setAlignMax(0.5);
+  plotting.setAlignMax(0.5);        // align maximum in center of plot
   analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
 }
 
