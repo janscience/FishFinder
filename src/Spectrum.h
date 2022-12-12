@@ -60,6 +60,8 @@ protected:
   sample_t *Buffer;
   sample_t *Window;
   float X;
+  float MaxAmpl;
+  float AmplFac;
   q15_t *Power;
   float Resolution;
   mutable bool Changed;

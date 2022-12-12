@@ -11,6 +11,8 @@ Spectrum::Spectrum(int channel, AnalysisChain *chain) :
   Buffer(0),
   Window(0),
   X(0),
+  MaxAmpl(0),
+  AmplFac(1.0),
   Power(0),
   Resolution(10.0),
   Changed(false) {
@@ -54,6 +56,8 @@ void Spectrum::start(uint8_t nchannels, size_t nframes) {
     Serial.println("Not enough memory to allocate spectrum buffer!");
     while (1) {};
   }
+  MaxAmpl = 0.0;
+  AmplFac = 1.0;
   // Hanning window:
   float a = TWO_PI/(NFFT-1);
   sample_t *window = Window;
@@ -86,14 +90,22 @@ void Spectrum::stop() {
 void Spectrum::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
   if (BufferIndex < 2*NFFT) {
     // copy data: 2ms
-    if (BufferIndex == 0)
+    if (BufferIndex == 0) {
+      if (MaxAmpl > 0.0 && MaxAmpl < 1 << 13)
+	AmplFac = (1 << 14)/MaxAmpl;
+      else
+	AmplFac = 1.0;
       X = data[Channel][Offs];
+      MaxAmpl = X;
+    }
     size_t i = 0;
     for (i=0; i<Offs && BufferIndex < 2*NFFT; i++)
       X += (data[Channel][i] - X)/Step;          // Nyquist low-pass filter
     for (i=Offs; i<nframes && BufferIndex < 2*NFFT; i+=Step) {
-      Buffer[BufferIndex++] = X;  // real
-      Buffer[BufferIndex++] = 0;  // imaginary
+      if (MaxAmpl < fabs(X))
+	MaxAmpl = fabs(X);
+      Buffer[BufferIndex++] = AmplFac*X;  // real
+      Buffer[BufferIndex++] = 0;          // imaginary
       for (size_t j=0; j<Step && i+j < nframes; j++)
 	X += (data[Channel][i+j] - X)/Step;      // Nyquist low-pass filter
     }
