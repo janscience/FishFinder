@@ -21,18 +21,19 @@ float eigen_phases[] = {0.784, 0.825, 0.594, 0.360, 0.267, -1.0};
 
 // ----- pins: ---------------------------------------------------------------
 
-#define DAC_PIN         A21
+//#define DAC_PIN         A21 // Teensy 3.5
+#define DAC_PIN         A14 // Teensy 3.2
 
-#define FREQ_UP_PIN     1   // switch for increasing frequency
-#define FREQ_DOWN_PIN   2   // switch for decreasing frequency
-#define AMPL_UP_PIN     3   // switch for increasing amplitude
-#define AMPL_DOWN_PIN   4   // switch for decreasing amplitude
-#define WAVEFORM_PIN    5   // switch for changing EOD waveform
+#define FREQ_UP_PIN     0   // switch for increasing frequency
+#define FREQ_DOWN_PIN   1   // switch for decreasing frequency
+#define AMPL_UP_PIN     2   // switch for increasing amplitude
+#define AMPL_DOWN_PIN   3   // switch for decreasing amplitude
+#define WAVEFORM_PIN    4   // switch for changing EOD waveform
 
 // ---------------------------------------------------------------------------
 
 Waveform wave;
-Blink blink(LED_BUILTIN);
+Blink blink(5);
 PushButtons buttons;
 
 float rate = default_rate;
