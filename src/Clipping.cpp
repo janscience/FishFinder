@@ -72,11 +72,13 @@ void Clipping::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
 
 void Clipping::setFeedback(bool feedback) {
   AudioFeedback = feedback;
+  if (!AudioFeedback)
+    Audio->setFeedback(0.0, AudioFeedbackChannel);
 }
 
 
 void Clipping::toggleFeedback() {
-  AudioFeedback = !AudioFeedback;
+  setFeedback(!AudioFeedback);
 }
 
 

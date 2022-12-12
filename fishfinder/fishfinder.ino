@@ -1,3 +1,8 @@
+// Features:
+#define DETECT_CLIPPING
+#define COMPUTE_SPECTRUM
+//#define COMPUTE_CORRELATIONS    // TODO: not fully implemented yet
+
 #include <Configurator.h>
 #include <Settings.h>
 #include <ContinuousADC.h>
@@ -7,10 +12,16 @@
 #include <ST7789_t3.h>
 #include <fonts/FreeSans12pt7b.h>
 #include <AnalysisChain.h>
+#ifdef DETECT_CLIPPING
 #include <Clipping.h>
-//#include <Correlation.h>
+#endif
+#ifdef COMPUTE_CORRELATIONS
+#include <Correlation.h>
+#endif
+#ifdef COMPUTE_SPECTRUM
 #include <Spectrum.h>
 #include <ReportPeakFreq.h>
+#endif
 #include <Plotting.h>
 #include <ReportTime.h>
 #include <RTClock.h>
@@ -19,7 +30,7 @@
 
 #define DEBUG
 
-#define SOFTWARE "FishFinder V1.1"
+#define SOFTWARE "FishFinder V1.2"
 
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
@@ -107,10 +118,16 @@ elapsedMillis DateFileTime;
 RTClock rtclock;
 
 AnalysisChain analysis(aidata);
+#ifdef DETECT_CLIPPING
 Clipping clipping(0, &audio, 0, &analysis);
-//Correlation correlation(&audio, 1, &analysis);
+#endif
+#ifdef COMPUTE_CORRELATIONS
+Correlation correlation(&audio, 1, &analysis);
+#endif
+#ifdef COMPUTE_SPECTRUM
 Spectrum spectrum(0, &analysis);
 ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_PEAKFREQ, &analysis);
+#endif
 Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, &analysis);
 ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 
@@ -124,7 +141,9 @@ int restarts = 0;
 int updownstate = 0;    // how to use up/down buttons
 const int maxupdownstates = 2; // number of different usages for up/down buttons
 char updownids[maxupdownstates][2] = {"V", "X"};
-char clippingids[maxupdownstates][2] = {"", "C"};
+#ifdef DETECT_CLIPPING
+char clippingids[2][2] = {"", "C"};
+#endif
 
 #ifdef DEBUG
 #include <FreeStack.h>
@@ -170,16 +189,20 @@ void initScreen(Display &screen) {
 void setupScreen() {
   screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.87, 0.38, 1.0);
   screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.87, 1.0, 1.0);
+#ifdef COMPUTE_SPECTRUM
   screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.72, 0.3, 0.87);
+#endif
   screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.72, 1.0, 0.87);
   screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
-  screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.79, 0.94, 0.87, true);
   screen.setTextArea(SCREEN_TEXT_TIME, 0.0, 0.0, 0.25, 0.13);
   screen.swapTextColors(SCREEN_TEXT_UPDOWN);
-  screen.swapTextColors(SCREEN_TEXT_CLIPPING);
   screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+#ifdef DETECT_CLIPPING
+  screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.79, 0.94, 0.87, true);
+  screen.swapTextColors(SCREEN_TEXT_CLIPPING);
   screen.writeText(SCREEN_TEXT_CLIPPING,
                    clippingids[clipping.feedbackEnabled()]);
+#endif
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.72);
   screen.setBacklightOn();
 }
@@ -259,18 +282,22 @@ void toggleRecord(int id) {
 
 void toggleVoiceMessage(int id) {
   if (reporttime.enabled()) {
+#ifdef DETECT_CLIPPING
     if (buttons.button(id)->previousDuration() > 500) {
       clipping.toggleFeedback();
       screen.writeText(SCREEN_TEXT_CLIPPING,
                        clippingids[clipping.feedbackEnabled()]);
     }
     else {
+#endif
       // change up/down switch usage:
       updownstate++;
       if (updownstate >= maxupdownstates)
         updownstate = 0;
       screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+#ifdef DETECT_CLIPPING
     }
+#endif
   }
   else {
     // voice message only as long last file name is shown:
@@ -308,7 +335,9 @@ void toggleVoiceMessage(int id) {
       voicefile.setMaxFileSamples(0);
       voicefile.start();
       screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
+#ifdef COMPUTE_SPECTRUM
       screen.clearText(SCREEN_TEXT_PEAKFREQ);
+#endif
       voiceled.setSingle();
       voiceled.blinkSingle(0, 1000);
       Serial.println("START VOICE MESSAGE");
@@ -431,13 +460,17 @@ void setupAudio() {
 
 
 void setupAnalysis() {
-  //clipping.disable();
-  //correlation.disable();
-  //clipping.setClipThreshold(0.9);   // make it configurable!
-  clipping.setClipThreshold(0.8);   // make it configurable!
+#ifdef DETECT_CLIPPING
+  clipping.setClipThreshold(0.9);   // make it configurable!
   clipping.setMuteThreshold(0.7);   // make it configurable!
+#endif
+#ifdef COMPUTE_CORRELATIONS
+  correlation.disable();
+#endif
+#ifdef COMPUTE_SPECTRUM
   spectrum.setNFFT(4096);
   spectrum.setResolution(3.0);
+#endif
   plotting.setSkipping(4);
   plotting.setWindow(0.01);
   plotting.setAlignMax(0.5);
@@ -487,8 +520,10 @@ void loop() {
   blink.update();
   if ((DateFileTime > MAX_FILE_SHOWTIME) && ! reporttime.enabled()) {
     reporttime.enable();
+#ifdef DETECT_CLIPPING
     screen.writeText(SCREEN_TEXT_CLIPPING,
                      clippingids[clipping.feedbackEnabled()]);
+#endif
     screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
  }
 }
