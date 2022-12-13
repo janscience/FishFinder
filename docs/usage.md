@@ -30,22 +30,30 @@
 
 ## Switches
 
-- Red record switch:
-  - Start and stop a recording.
-  - Within 30s after a recording was stopped (as long as the filename
-    is shown on the display): disable voice message and reactivate
-    base screen.
-- Green voice message switch:
-  - Within 30s after a recording was stopped (as long as the filename
-    is shown on the display): start and stop a voice message.
-  - after 30s of a recording or voice message:
-    - brief push: toggle between volume (`V` indicator on top right of
-      display) and zoom (`X` indicator on top right of display).
-    - push for minimum half a second: toggle audio feedback beeps on
-      clipping (`C` indicator on top right of display).
-- blue volume switches:
-  - increase or decrease audio volume (`V` indicator on top right of display)
-  - zoom time axis in or out (`X` indicator)
+### Red record switch
+
+- Start a recording.
+- Stop a recording or voice message.
+- Within 30s after a recording was stopped (as long as the filename
+  is shown on the display): disable voice message and reactivate
+  base screen.
+    
+### Green voice message switch
+
+- Within 30s after a recording was stopped (as long as the filename
+  is shown on the display): start and stop a voice message.
+- after 30s of a recording or voice message:
+  - brief push: toggle between volume (`V` indicator on top right of
+    display), zoom time window (`X` indicator on top right of display),
+    and zoom signal amplitude (`Y` indicator on top right of display).
+  - push for minimum half a second: toggle audio feedback beeps on
+    clipping (`C` indicator on top right of display).
+      
+### Blue volume switches
+
+- increase or decrease audio volume (`V` indicator on top right of display)
+- zoom time axis in or out (`X` indicator)
+- zoom amplitude in or out (`Y` indicator)
 
 
 ## Get the data

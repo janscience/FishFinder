@@ -269,10 +269,55 @@ bool openFile(const String &name) {
 }
 
 
+void startVoiceMessage() {
+  analysis.stop();
+  audio.pause();
+  aidata.stop();
+  screen.clearPlots();
+  setupVoiceADC();
+  aidata.start();
+  aidata.report();
+  String voicename = lastname;
+  voicename.remove(voicename.indexOf(".wav"));
+  voicename += "-message.wav";
+  voicefile.openWave(voicename.c_str());
+  voicefile.setMaxFileSamples(0);
+  voicefile.start();
+  screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
+  #ifdef COMPUTE_SPECTRUM
+  screen.clearText(SCREEN_TEXT_PEAKFREQ);
+  #endif
+  voiceled.setSingle();
+  voiceled.blinkSingle(0, 1000);
+  Serial.println("START VOICE MESSAGE");
+  SwapCounter = 0;
+}
+
+
+void stopVoiceMessage() {
+  voicefile.write();
+  voicefile.closeWave();
+  voiceled.clear();
+  aidata.stop();
+  screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
+  screen.clearText(SCREEN_TEXT_ACTION);
+  screen.clearText(SCREEN_TEXT_FILETIME);
+  setupDataADC();
+  aidata.start();
+  aidata.report();
+  audio.play();
+  analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
+  Serial.println("STOP VOICE MESSAGE");
+}
+
+
 void toggleRecord(int id) {
-  if (voicefile.isOpen())  // voice message in progress
-    return;
+  Serial.println("TOGGLE RECORD");
   // on button press:
+  if (voicefile.isOpen()) { // voice message in progress
+    stopVoiceMessage();
+    return;
+  }
   if (datafile.isOpen()) {
     datafile.write();
     datafile.closeWave();
@@ -320,44 +365,10 @@ void toggleVoiceMessage(int id) {
       return;
     if (lastname.length() == 0)  // no recording yet
       return;
-    if (voicefile.isOpen()) {    // stop voice message
-      voicefile.write();
-      voicefile.closeWave();
-      voiceled.clear();
-      aidata.stop();
-      screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
-      screen.clearText(SCREEN_TEXT_ACTION);
-      screen.clearText(SCREEN_TEXT_FILETIME);
-      setupDataADC();
-      aidata.start();
-      aidata.report();
-      audio.play();
-      analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
-      Serial.println("STOP VOICE MESSAGE");
-    }
-    else {                       // start voice message
-      analysis.stop();
-      audio.pause();
-      aidata.stop();
-      screen.clearPlots();
-      setupVoiceADC();
-      aidata.start();
-      aidata.report();
-      String voicename = lastname;
-      voicename.remove(voicename.indexOf(".wav"));
-      voicename += "-message.wav";
-      voicefile.openWave(voicename.c_str());
-      voicefile.setMaxFileSamples(0);
-      voicefile.start();
-      screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
-#ifdef COMPUTE_SPECTRUM
-      screen.clearText(SCREEN_TEXT_PEAKFREQ);
-#endif
-      voiceled.setSingle();
-      voiceled.blinkSingle(0, 1000);
-      Serial.println("START VOICE MESSAGE");
-      SwapCounter = 0;
-    }
+    if (voicefile.isOpen())
+      stopVoiceMessage();
+    else
+      startVoiceMessage();
     DateFileTime = 0;
   }
 }
@@ -396,7 +407,6 @@ void setupButtons() {
   buttons.add(VOICE_PIN, INPUT_PULLUP, 0, toggleVoiceMessage);
   buttons.add(UP_PIN, INPUT_PULLUP, switchUp);
   buttons.add(DOWN_PIN, INPUT_PULLUP, switchDown);
-  delay(10);
 }
 
 
