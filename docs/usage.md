@@ -30,7 +30,11 @@
 
 ## Switches
 
-- Red record switch: start and stop a recording.
+- Red record switch:
+  - Start and stop a recording.
+  - Within 30s after a recording was stopped (as long as the filename
+    is shown on the display): disable voice message and reactivate
+    base screen.
 - Green voice message switch:
   - Within 30s after a recording was stopped (as long as the filename
     is shown on the display): start and stop a voice message.

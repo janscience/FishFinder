@@ -50,7 +50,7 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define ANALYSIS_WINDOW  0.2 // seconds
 
 #define MAX_TEXT_SWAP 5
-#define MAX_FILE_SHOWTIME 15*1000 // 15s
+#define MAX_FILE_SHOWTIME 30*1000 // 30s
 
 // Pin assignment: ------------------------------------------------------------
 
@@ -210,6 +210,16 @@ void setupScreen() {
 }
 
 
+void reactivateBaseScreen() {
+    reporttime.enable();
+#ifdef DETECT_CLIPPING
+    screen.writeText(SCREEN_TEXT_CLIPPING,
+                     clippingids[clipping.feedbackEnabled()]);
+#endif
+    screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+}
+
+
 void diskFull() {
   Serial.println("SD card probably not inserted or full");
   Serial.println();
@@ -271,6 +281,9 @@ void toggleRecord(int id) {
     screen.clearText(SCREEN_TEXT_ACTION);
     screen.clearText(SCREEN_TEXT_FILETIME);
     Serial.println("  stopped recording\n");
+  }
+  else if (! reporttime.enabled()) {
+    reactivateBaseScreen();
   }
   else {
     reporttime.disable();
@@ -526,12 +539,6 @@ void loop() {
   analysis.update();
   audio.update();
   blink.update();
-  if ((DateFileTime > MAX_FILE_SHOWTIME) && ! reporttime.enabled()) {
-    reporttime.enable();
-#ifdef DETECT_CLIPPING
-    screen.writeText(SCREEN_TEXT_CLIPPING,
-                     clippingids[clipping.feedbackEnabled()]);
-#endif
-    screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
- }
+  if ((DateFileTime > MAX_FILE_SHOWTIME) && ! reporttime.enabled())
+    reactivateBaseScreen();
 }
