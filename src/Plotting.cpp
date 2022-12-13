@@ -61,7 +61,7 @@ void Plotting::zoomTimeOut() {
 
 
 void Plotting::zoomAmplitudeIn() {
-  if (AmplitudeFac < 1 << 12)
+  if (AmplitudeFac < 512)
     AmplitudeFac *= 2;
   Counter = 0;
 }

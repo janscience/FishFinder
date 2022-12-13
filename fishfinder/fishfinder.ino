@@ -191,16 +191,16 @@ void setupScreen() {
   screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.9, 0.38, 1.0);
   screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.9, 1.0, 1.0);
 #ifdef COMPUTE_SPECTRUM
-  screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.78, 0.3, 0.88);
+  screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.77, 0.3, 0.87);
 #endif
-  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.78, 1.0, 0.88);
-  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.78, 1.0, 0.88, true);
+  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.77, 1.0, 0.87);
+  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
   screen.setTextArea(SCREEN_TEXT_TIME, 0.0, 0.0, 0.25, 0.13);
   screen.setTextArea(SCREEN_TEXT_AMPLITUDE, 0.0, 0.63, 0.15, 0.76);
   screen.swapTextColors(SCREEN_TEXT_UPDOWN);
   screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
 #ifdef DETECT_CLIPPING
-  screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.78, 0.94, 0.88, true);
+  screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.79, 0.94, 0.87, true);
   screen.swapTextColors(SCREEN_TEXT_CLIPPING);
   screen.writeText(SCREEN_TEXT_CLIPPING,
                    clippingids[clipping.feedbackEnabled()]);
@@ -269,6 +269,25 @@ bool openFile(const String &name) {
 }
 
 
+void startRecording() {
+  reporttime.disable();
+  String name = makeFileName();
+  openFile(name);
+  SwapCounter = 0;
+}
+
+
+void stopRecording() {
+  datafile.write();
+  datafile.closeWave();
+  blink.clear();
+  screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
+  screen.clearText(SCREEN_TEXT_ACTION);
+  screen.clearText(SCREEN_TEXT_FILETIME);
+  Serial.println("  stopped recording\n");
+}
+
+
 void startVoiceMessage() {
   analysis.stop();
   audio.pause();
@@ -312,29 +331,14 @@ void stopVoiceMessage() {
 
 
 void toggleRecord(int id) {
-  // on button press:
-  if (voicefile.isOpen()) { // voice message in progress
+  if (voicefile.isOpen()) // voice message in progress
     stopVoiceMessage();
-    return;
-  }
-  if (datafile.isOpen()) {
-    datafile.write();
-    datafile.closeWave();
-    blink.clear();
-    screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
-    screen.clearText(SCREEN_TEXT_ACTION);
-    screen.clearText(SCREEN_TEXT_FILETIME);
-    Serial.println("  stopped recording\n");
-  }
-  else if (! reporttime.enabled()) {
+  else if (datafile.isOpen())
+    stopRecording();
+  else if (! reporttime.enabled())
     reactivateBaseScreen();
-  }
-  else {
-    reporttime.disable();
-    String name = makeFileName();
-    openFile(name);
-    SwapCounter = 0;
-  }
+  else
+    startRecording();
   DateFileTime = 0;
 }
 
@@ -484,8 +488,10 @@ void setupAudio() {
   audio.setupAmp(AMPL_ENABLE_PIN);
   audio.setupVolume(0.1);
   audio.setLowpass(2);
-  audio.addFeedback(0.4, 6*440.0, 0.17);
-  //audio.addFeedback(0.2, 2*440.0, 0.2);
+  audio.addFeedback(0.3, 6*440.0, 0.17);
+#ifdef COMPUTE_CORRELATIONS
+  audio.addFeedback(0.2, 2*440.0, 0.2);
+#endif
 }
 
 
