@@ -70,6 +70,8 @@ void Plotting::zoomAmplitudeIn() {
 void Plotting::zoomAmplitudeOut() {
   if (AmplitudeFac > 1.0)
     AmplitudeFac *= 0.5;
+  if (fabs(AmplitudeFac - 1.0) < 1e-8)
+    Screen->writeText(AmplitudeArea, "");
   Counter = 0;
 }
 
@@ -136,7 +138,7 @@ void Plotting::analyze(sample_t **data, uint8_t nchannels, size_t nframes) {
       Screen->writeText(TimeArea, ts);
     }
     // indicate zoom factor:
-    if (AmplitudeArea >= 0) {
+    if (AmplitudeArea >= 0 && Screen->plotZoom(PlotArea) > 1.0) {
       char zs[10];
       sprintf(zs, "x%.0f", Screen->plotZoom(PlotArea));
       Screen->writeText(AmplitudeArea, zs);

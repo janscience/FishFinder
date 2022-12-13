@@ -50,7 +50,7 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define ANALYSIS_WINDOW  0.2 // seconds
 
 #define MAX_TEXT_SWAP 5
-#define MAX_FILE_SHOWTIME 30*1000 // 30s
+#define MAX_FILE_SHOWTIME 15*1000 // 15s
 
 // Pin assignment: ------------------------------------------------------------
 
@@ -196,7 +196,7 @@ void setupScreen() {
   screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.72, 1.0, 0.87);
   screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
   screen.setTextArea(SCREEN_TEXT_TIME, 0.0, 0.0, 0.25, 0.13);
-  screen.setTextArea(SCREEN_TEXT_AMPLITUDE, 0.0, 0.57, 0.15, 0.13);
+  screen.setTextArea(SCREEN_TEXT_AMPLITUDE, 0.0, 0.59, 0.15, 0.72);
   screen.swapTextColors(SCREEN_TEXT_UPDOWN);
   screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
 #ifdef DETECT_CLIPPING
