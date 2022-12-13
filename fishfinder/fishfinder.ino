@@ -188,24 +188,24 @@ void initScreen(Display &screen) {
 
 
 void setupScreen() {
-  screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.87, 0.38, 1.0);
-  screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.87, 1.0, 1.0);
+  screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.9, 0.38, 1.0);
+  screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.9, 1.0, 1.0);
 #ifdef COMPUTE_SPECTRUM
-  screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.72, 0.3, 0.87);
+  screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.78, 0.3, 0.88);
 #endif
-  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.72, 1.0, 0.87);
-  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
+  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.78, 1.0, 0.88);
+  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.78, 1.0, 0.88, true);
   screen.setTextArea(SCREEN_TEXT_TIME, 0.0, 0.0, 0.25, 0.13);
-  screen.setTextArea(SCREEN_TEXT_AMPLITUDE, 0.0, 0.59, 0.15, 0.72);
+  screen.setTextArea(SCREEN_TEXT_AMPLITUDE, 0.0, 0.63, 0.15, 0.76);
   screen.swapTextColors(SCREEN_TEXT_UPDOWN);
   screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
 #ifdef DETECT_CLIPPING
-  screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.79, 0.94, 0.87, true);
+  screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.78, 0.94, 0.88, true);
   screen.swapTextColors(SCREEN_TEXT_CLIPPING);
   screen.writeText(SCREEN_TEXT_CLIPPING,
                    clippingids[clipping.feedbackEnabled()]);
 #endif
-  screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.72);
+  screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.82);
   screen.setBacklightOn();
 }
 
@@ -312,7 +312,6 @@ void stopVoiceMessage() {
 
 
 void toggleRecord(int id) {
-  Serial.println("TOGGLE RECORD");
   // on button press:
   if (voicefile.isOpen()) { // voice message in progress
     stopVoiceMessage();
@@ -360,7 +359,7 @@ void toggleVoiceMessage(int id) {
 #endif
   }
   else {
-    // voice message only as long last file name is shown:
+    // voice message only as long as last file name is shown
     if (datafile.isOpen())       // recording in progress
       return;
     if (lastname.length() == 0)  // no recording yet
@@ -519,7 +518,6 @@ void setup() {
   while (!Serial && millis() < 200) {};
   rtclock.check();
   rtclock.report();
-  setupButtons();
   setupDataADC();
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
@@ -536,6 +534,7 @@ void setup() {
   setupScreen();
   setupAudio();
   setupAnalysis();
+  setupButtons();
   aidata.start();
   aidata.report();
   blink.switchOff();
