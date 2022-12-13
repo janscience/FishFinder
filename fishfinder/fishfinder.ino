@@ -154,6 +154,15 @@ char clippingids[2][2] = {"", "C"};
 #endif
 
 
+void configureDataADC() {
+  SamplingRate = aidata.rate();
+  Averaging = aidata.averaging();
+  Bits = aidata.resolution();
+  ConversionSpeed = aidata.conversionSpeed();
+  SamplingSpeed = aidata.samplingSpeed();
+}
+
+
 void setupDataADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_FRONT);
@@ -528,11 +537,7 @@ void setup() {
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
   config.configure(sdcard);
-  SamplingRate = aidata.rate();
-  Averaging = aidata.averaging();
-  Bits = aidata.resolution();
-  ConversionSpeed = aidata.conversionSpeed();
-  SamplingSpeed = aidata.samplingSpeed();
+  configureDataADC();
   setupStorage();
   aidata.check();
   initScreen(screen);
