@@ -21,6 +21,9 @@ class ReportPeakFreq : public Analyzer {
   ReportPeakFreq(Spectrum *spec, Display *screen, int textarea,
 		 AnalysisChain *chain=0);
 
+  // Find maximum peak in within fmin and fmax only.
+  void setFrequencyRange(float fmin, float fmax);
+
   // Start analyzer.
   virtual void start(uint8_t nchannels, size_t nframes);
 
@@ -35,6 +38,8 @@ class ReportPeakFreq : public Analyzer {
 
   Display *Screen;
   int TextArea;
+  float FMin;
+  float FMax;
   Spectrum *Spec;
   float PeakFreq;
   

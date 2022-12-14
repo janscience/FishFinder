@@ -52,6 +52,11 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 #define MAX_TEXT_SWAP 5
 #define MAX_FILE_SHOWTIME 30*1000 // 30s
 
+#ifdef COMPUTE_SPECTRUM
+#define SPECTRUM_FMIN  70.0   // Hz
+#define SPECTRUM_FMAX  2500.0 // Hz, 1.0e9 or larger: take all upto Nyquist frequency.
+#endif
+
 // Pin assignment: ------------------------------------------------------------
 
 #define CHANNEL_FRONT    A10 // input pin for front electrode
@@ -515,6 +520,7 @@ void setupAnalysis() {
 #ifdef COMPUTE_SPECTRUM
   spectrum.setNFFT(4096);
   spectrum.setResolution(3.0);
+  peakfreq.setFrequencyRange(SPECTRUM_FMIN, SPECTRUM_FMAX);
 #endif
   plotting.setSkipping(4);
   plotting.setWindow(0.01);
