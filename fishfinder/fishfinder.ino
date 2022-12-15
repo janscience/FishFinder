@@ -547,6 +547,14 @@ void setupAnalysis() {
 
 #ifdef MTP_RESPONDER
 void run_mtp_responder() {
+  screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
+  screen.writeText(0, SOFTWARE);
+  screen.setTextArea(1, 0.4, 0.4, 0.6, 0.6);
+  screen.swapTextColors(1);
+  screen.writeText(1, " MTP");
+  screen.setTextArea(2, 0.3, 0.2, 0.7, 0.3);
+  screen.writeText(2, "file transfer");
+  screen.setBacklightOn();
   MTP.begin();
   SD.begin(BUILTIN_SDCARD);
   MTP.addFilesystem(SD, "Fishfinder");
@@ -568,11 +576,11 @@ void setup() {
   while (!Serial && millis() < 200) {};
   rtclock.check();
   rtclock.report();
+  initScreen(screen);
 #ifdef MTP_RESPONDER
   if (usb_configuration)
     run_mtp_responder();
 #endif
-  initScreen(screen);
   setupDataADC();
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
