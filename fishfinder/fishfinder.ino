@@ -435,11 +435,19 @@ void switchDown(int id) {
 }
 
 
+void initButtons() {
+  buttons.add(RECORD_PIN, INPUT_PULLUP);
+  buttons.add(VOICE_PIN, INPUT_PULLUP);
+  buttons.add(UP_PIN, INPUT_PULLUP);
+  buttons.add(DOWN_PIN, INPUT_PULLUP);
+}
+
+
 void setupButtons() {
-  buttons.add(RECORD_PIN, INPUT_PULLUP, 0, toggleRecord);
-  buttons.add(VOICE_PIN, INPUT_PULLUP, 0, toggleVoiceMessage);
-  buttons.add(UP_PIN, INPUT_PULLUP, switchUp);
-  buttons.add(DOWN_PIN, INPUT_PULLUP, switchDown);
+  buttons.set(buttons.id(RECORD_PIN), 0, toggleRecord);
+  buttons.set(buttons.id(VOICE_PIN), 0, toggleVoiceMessage);
+  buttons.set(buttons.id(UP_PIN), switchUp);
+  buttons.set(buttons.id(DOWN_PIN), switchDown);
 }
 
 
@@ -558,10 +566,16 @@ void run_mtp_responder() {
   MTP.begin();
   SD.begin(BUILTIN_SDCARD);
   MTP.addFilesystem(SD, "Fishfinder");
+  int rec_id = buttons.id(RECORD_PIN);
   while (1) {
     MTP.loop();
+    buttons.update();
+    if (buttons.released(rec_id))
+      break;
     yield();
   }
+  screen.swapTextColors(1);
+  screen.clear();
 }
 #endif
 
@@ -577,6 +591,7 @@ void setup() {
   rtclock.check();
   rtclock.report();
   initScreen(screen);
+  initButtons();
 #ifdef MTP_RESPONDER
   if (usb_configuration)
     run_mtp_responder();

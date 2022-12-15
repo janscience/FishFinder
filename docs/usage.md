@@ -58,9 +58,11 @@
 
 ## Get the data
 
-- Open the fishfinder
-- Take out the SD card
-- Copy the data from SD card to your computer
-- Remove all files from SD card
-- Insert SD card back onto Teensy
-- Close fishfinder housing.
+- Connect the fishfinder via USB to a PC
+- Switch on the fishfinder.
+- The data on the SD card are now accesible via MTP protocoll. Copy
+  the data to your computer and delete them on the SD card.
+- Disconnect the fishfinder from the computer.
+- Press record button to end MTP and start normal recording mode
+  or switch the fishfinder off.
+

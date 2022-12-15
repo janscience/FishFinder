@@ -11,9 +11,10 @@ Smart fishfinders for better EOD recordings of electric fish in the field.
   fishfinder does.
 - A display shows the recorded signal.
 - Record directly to SD card.
-- Audio feedback: indicate clipping by warning tones.
 - Voice message: after a recording you can record a voice message for
   some meta data.
+- Download recordings and voice messages over USB connector via MTP.
+- Audio feedback: indicate clipping by warning tones.
 - Indicate peak frequency of power spectrum on display.
 - LiPo battery rechargeable with 5V via micro USB plug.
 
