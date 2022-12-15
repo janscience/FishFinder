@@ -1,6 +1,16 @@
 // Features:
+
+// Make files on SD disk available via USB:
+#define MTP_RESPONDER
+// git clone git@github.com:KurtE/MTP_Teensy.git
+// Requires Teensyduino >=1.57, set USB Type to "Serial + MTP Disk"
+
+// Detect clipping and give audio feedback:
 #define DETECT_CLIPPING
+
+// Compute spectrum and detect paek frequency:
 #define COMPUTE_SPECTRUM
+
 //#define COMPUTE_CORRELATIONS    // TODO: not fully implemented yet
 
 #include <Configurator.h>
@@ -8,6 +18,9 @@
 #include <ContinuousADC.h>
 #include <AudioMonitor.h>
 #include <SDWriter.h>
+#ifdef MTP_RESPONDER
+#include <MTP_Teensy.h>
+#endif
 #include <Display.h>
 #include <ST7789_t3.h>
 #include <fonts/FreeSans12pt7b.h>
@@ -115,6 +128,9 @@ Display screen;
 ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
               TFT_SCK_PIN, TFT_RST_PIN);
 
+#ifdef MTP_RESPONDER
+extern volatile uint8_t usb_configuration;
+#endif
 SDCard sdcard;
 SDWriter datafile(sdcard, aidata);
 SDWriter voicefile(sdcard, aidata);
@@ -529,6 +545,19 @@ void setupAnalysis() {
 }
 
 
+#ifdef MTP_RESPONDER
+void run_mtp_responder() {
+  MTP.begin();
+  SD.begin(BUILTIN_SDCARD);
+  MTP.addFilesystem(SD, "Fishfinder");
+  while (1) {
+    MTP.loop();
+    yield();
+  }
+}
+#endif
+
+
 // ---------------------------------------------------------------------------
 
 void setup() {
@@ -539,6 +568,11 @@ void setup() {
   while (!Serial && millis() < 200) {};
   rtclock.check();
   rtclock.report();
+#ifdef MTP_RESPONDER
+  if (usb_configuration)
+    run_mtp_responder();
+#endif
+  initScreen(screen);
   setupDataADC();
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
@@ -546,7 +580,6 @@ void setup() {
   configureDataADC();
   setupStorage();
   aidata.check();
-  initScreen(screen);
   DateFileTime = 0;
   setupScreen();
   setupAudio();
