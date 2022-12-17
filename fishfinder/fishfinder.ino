@@ -610,15 +610,16 @@ void run_mtp_responder() {
   MTP.begin();
   SD.begin(BUILTIN_SDCARD);
   MTP.addFilesystem(SD, "Fishfinder");
-  int rec_id = buttons.id(RECORD_PIN);
+  int id = -1;
   while (1) {
     MTP.loop();
     buttons.update();
-    if (buttons.pressed(rec_id))
+    id = buttons.pressedAny();
+    if (id >= 0)
       break;
     yield();
   }
-  buttons.waitReleased(rec_id);
+  buttons.waitReleased(id);
   screen.swapTextColors(1);
   screen.clear();
 }
