@@ -1,7 +1,7 @@
 // Features:
 
 // Make files on SD disk available via USB:
-//#define MTP_RESPONDER
+#define MTP_RESPONDER
 // git clone git@github.com:KurtE/MTP_Teensy.git
 // Requires Teensyduino >=1.57, set USB Type to "Serial + MTP Disk"
 
@@ -20,7 +20,10 @@
 //#define COMPUTE_CORRELATIONS    // TODO: not fully implemented yet
 
 #include <Configurator.h>
-#include <Settings.h>
+#include <FishfinderSettings.h>
+#ifdef LOGGER
+#include <LoggerSettings.h>
+#endif
 #include <ContinuousADC.h>
 #include <AudioMonitor.h>
 #include <SDWriter.h>
@@ -63,6 +66,12 @@ ADC_CONVERSION_SPEED ConversionSpeed = ADC_CONVERSION_SPEED::HIGH_SPEED;
 ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 			
 #define FILENAME         "SDATEFNUM.wav" // may include DATE, SDATE, TIME, STIME, NUM, ANUM
+
+#ifdef LOGGER
+#define LOGGER_FILENAME      "logger1-SDATETIME" // may include DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, ANUM, NUM
+#define LOGGER_FILESAVETIME  1*60          // seconds
+#define LOGGER_INITIALDELAY  1.0            // seconds
+#endif
 
 #define DATA_BUFFER_SIZE 256*96
 #define AUDIO_BLOCKS     4
@@ -124,7 +133,11 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 // ----------------------------------------------------------------------------
 
 Configurator config;
-Settings settings("recordings", FILENAME);
+FishfinderSettings settings("fishfinder", FILENAME);
+#ifdef LOGGER
+LoggerSettings logger_settings("logger", LOGGER_FILENAME,
+			       LOGGER_FILESAVETIME, LOGGER_INITIALDELAY);
+#endif
 
 DATA_BUFFER(AIBuffer, NAIBuffer, DATA_BUFFER_SIZE);
 ContinuousADC aidata(AIBuffer, NAIBuffer);
@@ -307,10 +320,10 @@ void diskFull() {
 }
 
 
-String makeFileName() {
+String makeFileName(const char *filename) {
   CHECK_MEMORY
   time_t t = now();
-  String name = rtclock.makeStr(settings.FileName, t, true);
+  String name = rtclock.makeStr(filename, t, true);
   if (name != prevname) {
     datafile.resetFileCounter();
     prevname = name;
@@ -348,10 +361,33 @@ bool openFile(const String &name) {
   return true;
 }
 
+#ifdef LOGGER
+bool openNextFile(const String &name) {
+  blink.clear();
+  if (name.length() == 0)
+    return false;
+  String fname = name + ".wav";
+  char dts[20];
+  rtclock.dateTime(dts);
+  if (! datafile.openWave(fname.c_str(), -1, dts)) {
+    Serial.println();
+    Serial.println("WARNING: failed to open file on SD card.");
+    Serial.println("SD card probably not inserted or full -> halt");
+    aidata.stop();
+    while (1) {};
+    return false;
+  }
+  datafile.write();
+  Serial.println(fname);
+  blink.setSingle();
+  blink.blinkSingle(0, 1000);
+  return true;
+}
+#endif
 
 void startRecording() {
   reporttime.disable();
-  String name = makeFileName();
+  String name = makeFileName(settings.FileName);
   openFile(name);
   SwapCounter = 0;
 }
@@ -502,11 +538,11 @@ void setupButtons() {
 }
 
 
-void setupStorage() {
+void setupStorage(const char *path) {
   prevname = "";
   lastname = "";
-  if (datafile.dataDir(settings.Path))
-    Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.Path);
+  if (datafile.dataDir(path))
+    Serial.printf("Save recorded data in folder \"%s\".\n\n", path);
   datafile.setWriteInterval();
   datafile.setSoftware(SOFTWARE);
 }
@@ -568,6 +604,64 @@ void storeData() {
     DateFileTime = 0;
   }
 }
+
+
+#ifdef LOGGER
+void loggerStoreData() {
+  if (datafile.pending()) {
+    ssize_t samples = datafile.write();
+    if (samples <= 0) {
+      blink.clear();
+      Serial.println();
+      Serial.println("ERROR in writing data to file:");
+      switch (samples) {
+        case 0:
+          Serial.println("  Nothing written into the file.");
+          Serial.println("  SD card probably full -> halt");
+          aidata.stop();
+          while (1) {};
+          break;
+        case -1:
+          Serial.println("  File not open.");
+          break;
+        case -2:
+          Serial.println("  File already full.");
+          break;
+        case -3:
+          Serial.println("  No data available, data acquisition probably not running.");
+          Serial.println("  sampling rate probably too high,");
+          Serial.println("  given the number of channels, averaging, sampling and conversion speed.");
+          break;
+      }
+      if (samples == -3) {
+        aidata.stop();
+        datafile.closeWave();
+        char mfs[20];
+        sprintf(mfs, "error%d-%d.msg", restarts+1, -samples);
+        FsFile mf = sdcard.openWrite(mfs);
+        mf.close();
+      }
+    }
+    if (datafile.endWrite() || samples < 0) {
+      datafile.close();  // file size was set by openWave()
+      String name = makeFileName(logger_settings.FileName);
+      if (samples < 0) {
+        restarts++;
+        if (restarts >= 5) {
+          Serial.println("ERROR: Too many file errors -> halt.");
+          aidata.stop();
+          while (1) {};
+        }
+      }
+      if (samples == -3) {
+        aidata.start();
+        datafile.start();
+      }
+      openNextFile(name);
+    }
+  }
+}
+#endif
 
 
 void setupAudio() {
@@ -633,6 +727,39 @@ void run_mtp_responder() {
 #endif
 
 
+#ifdef LOGGER
+void logger_setup(int id) {
+  screen.setBacklightOff();
+  setupStorage(logger_settings.Path);
+  datafile.setMaxFileTime(logger_settings.FileTime);
+  aidata.check();
+  aidata.start();
+  aidata.report();
+  blink.switchOff();
+  if (logger_settings.InitialDelay >= 2.0) {
+    delay(1000);
+    blink.setDouble();
+    blink.delay(uint32_t(1000.0*logger_settings.InitialDelay) - 1000);
+  }
+  else
+    delay(uint32_t(1000.0*logger_settings.InitialDelay));
+  String name = makeFileName(logger_settings.FileName);
+  if (name.length() == 0) {
+    Serial.println("-> halt");
+    aidata.stop();
+    while (1) {};
+  }
+  datafile.start();
+  openNextFile(name);
+  while (1) {
+    loggerStoreData();
+    blink.update();
+    yield();
+  }
+}
+#endif
+
+
 // ---------------------------------------------------------------------------
 
 void setup() {
@@ -650,15 +777,20 @@ void setup() {
     run_mtp_responder();
 #endif
   setupDataADC();
+  sdcard.begin();
+  config.setConfigFile("fishfinder.cfg");
+  config.configure(sdcard);
+  configureDataADC();
+  aidata.check();
+  DateFileTime = 0;
   menu.setTitle(SOFTWARE);
-  menu.add("Fishfinder", 0);
+  menu.add("Run as fishfinder", 0);
 #ifdef LOGGER
-  menu.add("Logger", 1);
+  menu.add("Run as logger", logger_setup, 1);
 #endif
 #ifdef ADC_INFO
-  menu.add("Info", showDataADC, 2);
+  menu.add("Show settings", showDataADC, 2);
 #endif
-  //menu.add("Settings", 3);
   screen.setBacklightOn();
   if (menu.nActions() > 1) {
     int selected = menu.exec();
@@ -666,13 +798,7 @@ void setup() {
       while (1) {};
     }
   }
-  sdcard.begin();
-  config.setConfigFile("fishfinder.cfg");
-  config.configure(sdcard);
-  configureDataADC();
-  setupStorage();
-  aidata.check();
-  DateFileTime = 0;
+  setupStorage(settings.Path);
   setupScreen();
   setupAudio();
   setupAnalysis();
