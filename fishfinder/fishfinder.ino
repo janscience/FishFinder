@@ -40,6 +40,8 @@
 #include <RTClock.h>
 #include <PushButtons.h>
 #include <Blink.h>
+#include <Menu.h>
+
 
 #define DEBUG
 
@@ -154,6 +156,7 @@ Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE, &an
 ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 
 PushButtons buttons;
+Menu menu(&screen, &buttons);
 Blink blink(RECORD_LED_PIN);
 Blink voiceled(VOICE_LED_PIN);
 
@@ -218,6 +221,7 @@ void initScreen(Display &screen) {
 
 
 void setupScreen() {
+  screen.clear();
   screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.9, 0.38, 1.0);
   screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.9, 1.0, 1.0);
 #ifdef COMPUTE_SPECTRUM
@@ -436,10 +440,11 @@ void switchDown(int id) {
 
 
 void initButtons() {
-  buttons.add(RECORD_PIN, INPUT_PULLUP);
-  buttons.add(VOICE_PIN, INPUT_PULLUP);
-  buttons.add(UP_PIN, INPUT_PULLUP);
-  buttons.add(DOWN_PIN, INPUT_PULLUP);
+  int select = buttons.add(RECORD_PIN, INPUT_PULLUP);
+  int back = buttons.add(VOICE_PIN, INPUT_PULLUP);
+  int up = buttons.add(UP_PIN, INPUT_PULLUP);
+  int down = buttons.add(DOWN_PIN, INPUT_PULLUP);
+  menu.setButtons(up, down, select, back);
 }
 
 
@@ -570,8 +575,12 @@ void run_mtp_responder() {
   while (1) {
     MTP.loop();
     buttons.update();
-    if (buttons.released(rec_id))
+    if (buttons.pressed(rec_id))
       break;
+    yield();
+  }
+  while (!buttons.released(rec_id)) {
+    buttons.update();
     yield();
   }
   screen.swapTextColors(1);
@@ -596,6 +605,17 @@ void setup() {
   if (usb_configuration)
     run_mtp_responder();
 #endif
+  menu.add("Fishfinder");
+  menu.add("Logger");
+  menu.add("Info");
+  menu.add("Settings");
+  screen.setBacklightOn();
+  /*
+  int selected = menu.exec();
+  if (selected > 0) {
+    while (1) {};
+  }
+  */
   setupDataADC();
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
