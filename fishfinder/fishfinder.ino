@@ -1,9 +1,15 @@
 // Features:
 
 // Make files on SD disk available via USB:
-#define MTP_RESPONDER
+//#define MTP_RESPONDER
 // git clone git@github.com:KurtE/MTP_Teensy.git
 // Requires Teensyduino >=1.57, set USB Type to "Serial + MTP Disk"
+
+// Add logger mode:
+#define LOGGER
+
+// Provide a menu entry for showing ADC settings:
+#define ADC_INFO
 
 // Detect clipping and give audio feedback:
 #define DETECT_CLIPPING
@@ -201,6 +207,7 @@ void setupDataADC() {
 }
 
 
+#ifdef ADC_INFO
 void showDataADC(int id) {
   char msg[100];
   String convspeed = aidata.conversionSpeedShortStr();
@@ -238,7 +245,7 @@ void showDataADC(int id) {
   screen.fadeBacklightOff();
   screen.clearText();
 }
-
+#endif
 
 void setupVoiceADC() {
   aidata.clearChannels();
@@ -645,14 +652,19 @@ void setup() {
   setupDataADC();
   menu.setTitle(SOFTWARE);
   menu.add("Fishfinder", 0);
-  //menu.add("Logger", 1);
+#ifdef LOGGER
+  menu.add("Logger", 1);
+#endif
+#ifdef ADC_INFO
   menu.add("Info", showDataADC, 2);
+#endif
   //menu.add("Settings", 3);
-  //menu.draw();
   screen.setBacklightOn();
-  int selected = menu.exec();
-  if (selected > 0) {
-    while (1) {};
+  if (menu.nActions() > 1) {
+    int selected = menu.exec();
+    if (selected > 0) {
+      while (1) {};
+    }
   }
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
