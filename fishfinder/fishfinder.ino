@@ -201,6 +201,45 @@ void setupDataADC() {
 }
 
 
+void showDataADC(int id) {
+  char msg[100];
+  String convspeed = aidata.conversionSpeedShortStr();
+  String samplspeed = aidata.samplingSpeedShortStr();
+  char chans0[50];
+  char chans1[50];
+  aidata.channels(0, chans0);
+  aidata.channels(1, chans1);
+  if (chans0[0] == '\0')
+    strcpy(chans0, "-");
+  if (chans1[0] == '\0')
+    strcpy(chans1, "-");
+  float bt = aidata.bufferTime();
+  char bts[20];
+  if (bt < 1.0)
+    sprintf(bts, "%.0fms\n", 1000.0*bt);
+  else
+    sprintf(bts, "%.2fs\n", bt);
+  sprintf(msg, "%.0fkHz\n%dbit\n%d,%s,%s\n%s\n%s\n%s",
+          0.001*aidata.rate(), aidata.resolution(), aidata.averaging(),
+          convspeed.c_str(), samplspeed.c_str(), chans0, chans1, bts);
+  screen.fadeBacklightOff();
+  screen.clear();
+  screen.setTextArea(0, 0.0, 0.75, 1.0, 0.95);
+  screen.setTitleFont(0);
+  screen.setTextArea(1, 0.0, 0.0, 0.4, 0.7, true);
+  screen.setSmallFont(1);
+  screen.setTextArea(2, 0.4, 0.0, 1.0, 0.7, true);
+  screen.setSmallFont(2);
+  screen.writeText(0, SOFTWARE);
+  screen.writeText(1, "rate:\nres.:\nspeed:\nADC0:\nADC1\nbuffer:");
+  screen.writeText(2, msg);
+  screen.fadeBacklightOn();
+  buttons.waitPressAny();
+  screen.fadeBacklightOff();
+  screen.clearText();
+}
+
+
 void setupVoiceADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_VOICE);
@@ -579,10 +618,7 @@ void run_mtp_responder() {
       break;
     yield();
   }
-  while (!buttons.released(rec_id)) {
-    buttons.update();
-    yield();
-  }
+  buttons.waitReleased(rec_id);
   screen.swapTextColors(1);
   screen.clear();
 }
@@ -605,18 +641,18 @@ void setup() {
   if (usb_configuration)
     run_mtp_responder();
 #endif
-  menu.add("Fishfinder");
-  menu.add("Logger");
-  menu.add("Info");
-  menu.add("Settings");
+  setupDataADC();
+  menu.setTitle(SOFTWARE);
+  menu.add("Fishfinder", 0);
+  //menu.add("Logger", 1);
+  menu.add("Info", showDataADC, 2);
+  //menu.add("Settings", 3);
+  //menu.draw();
   screen.setBacklightOn();
-  /*
   int selected = menu.exec();
   if (selected > 0) {
     while (1) {};
   }
-  */
-  setupDataADC();
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
   config.configure(sdcard);
