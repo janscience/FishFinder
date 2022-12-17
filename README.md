@@ -17,6 +17,8 @@ Smart fishfinders for better EOD recordings of electric fish in the field.
 - Audio feedback: indicate clipping by warning tones.
 - Indicate peak frequency of power spectrum on display.
 - LiPo battery rechargeable with 5V via micro USB plug.
+- Run fishfinder as logger for continuous recordings
+  (with display and audio monitor disabled).
 
 <img src="docs/images/20221209F02.png" width=100%>
 
