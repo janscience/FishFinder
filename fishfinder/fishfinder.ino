@@ -786,10 +786,10 @@ void setup() {
   menu.setTitle(SOFTWARE);
   menu.add("Run as fishfinder", 0);
 #ifdef LOGGER
-  menu.add("Run as logger", logger_setup, 1);
+  menu.addAction("Run as logger", logger_setup, 1);
 #endif
 #ifdef ADC_INFO
-  menu.add("Show settings", showDataADC, 2);
+  menu.addAction("Show settings", showDataADC, 2);
 #endif
   screen.setBacklightOn();
   if (menu.nActions() > 1) {
