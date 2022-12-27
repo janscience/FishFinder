@@ -24,7 +24,7 @@
 #ifdef LOGGER
 #include <LoggerSettings.h>
 #endif
-#include <ContinuousADC.h>
+#include <TeensyADC.h>
 #include <AudioMonitor.h>
 #include <SDWriter.h>
 #ifdef MTP_RESPONDER
@@ -140,7 +140,7 @@ LoggerSettings logger_settings("logger", LOGGER_FILENAME,
 #endif
 
 DATA_BUFFER(AIBuffer, NAIBuffer, DATA_BUFFER_SIZE);
-ContinuousADC aidata(AIBuffer, NAIBuffer);
+TeensyADC aidata(AIBuffer, NAIBuffer);
 
 AudioOutputI2S speaker;
 AudioMonitor audio(aidata, speaker);
