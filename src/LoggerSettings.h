@@ -7,15 +7,17 @@
 #define LoggerSettings_h
 
 
-#include <Settings.h>
+#include <Arduino.h>
+#include <FishfinderSettings.h>
 
 
-class LoggerSettings : public Settings {
+class LoggerSettings : public FishfinderSettings {
 
 public:
 
   LoggerSettings(const char *path="recordings",
 		 const char *filename="SDATELNUM.wav",
+		 int mode=0,
 		 float filetime=10.0,
 		 float initialdelay=0.0);
   

@@ -1,10 +1,26 @@
 #include <FishfinderSettings.h>
 
 
-FishfinderSettings::FishfinderSettings(const char *path, const char *filename) :
+FishfinderSettings::FishfinderSettings(const char *path, const char *filename,
+				       int mode) :
   Configurable("Fishfinder") {
   strncpy(Path, path, MaxStr);
   strncpy(FileName, filename, MaxStr);
+  Mode = mode;
+}
+
+
+int FishfinderSettings::modeEnum(const char *mode) {
+  if (strcmp(mode, "1ch22khz") == 0)
+    return 0;
+  else if (strcmp(mode, "1ch44khz") == 0)
+    return 1;
+  else if (strcmp(mode, "1ch96khz") == 0)
+    return 2;
+  else if (strcmp(mode, "1ch192khz") == 0)
+    return 3;
+  else
+    return -1;
 }
 
 
@@ -21,9 +37,13 @@ void FishfinderSettings::configure(const char *key, const char *val) {
     strncpy(FileName, val, MaxStr);
     strcpy(pval, FileName);
   }
+  else if (strcmp(key, "mode") == 0) {
+    Mode = modeEnum(val);
+    strcpy(pval, val);
+  }
   else {
-    Serial.printf("  Settings key \"%s\" not found.\n", key);
+    Serial.printf("  %s key \"%s\" not found.\n", name(), key);
     return;
   }
-  Serial.printf("  set Settings-%s to %s\n", key, pval);
+  Serial.printf("  set %s-%s to %s\n", name(), key, pval);
 }

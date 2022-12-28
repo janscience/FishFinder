@@ -2,8 +2,8 @@
 
 
 LoggerSettings::LoggerSettings(const char *path, const char *filename,
-			       float filetime, float initialdelay) :
-  Settings(path, filename) {
+			       int mode, float filetime, float initialdelay) :
+  FishfinderSettings(path, filename, mode) {
   setName("Logger");
   FileTime = filetime;
   InitialDelay = initialdelay;
@@ -12,18 +12,7 @@ LoggerSettings::LoggerSettings(const char *path, const char *filename,
 
 void LoggerSettings::configure(const char *key, const char *val) {
   char pval[MaxStr];
-  if (strcmp(key, "path") == 0) {
-    strncpy(Path, val, MaxStr);
-    strcpy(pval, Path);
-  }
-  else if (strcmp(key, "filename") == 0) {
-    char *sp = strrchr(val, '.');
-    if (sp != NULL)
-      *sp = '\0';    // truncate file extension
-    strncpy(FileName, val, MaxStr);
-    strcpy(pval, FileName);
-  }
-  else if (strcmp(key, "filetime") == 0) {
+  if (strcmp(key, "filetime") == 0) {
     FileTime = parseTime(val);
     sprintf(pval, "%.0fs", FileTime);
   }
@@ -32,8 +21,8 @@ void LoggerSettings::configure(const char *key, const char *val) {
     sprintf(pval, "%.1fs", InitialDelay);
   }
   else {
-    Serial.printf("  Settings key \"%s\" not found.\n", key);
+    FishfinderSettings::configure(key, val);
     return;
   }
-  Serial.printf("  set Settings-%s to %s\n", key, pval);
+  Serial.printf("  set %s-%s to %s\n", name(), key, pval);
 }
