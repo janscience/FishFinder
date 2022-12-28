@@ -8,7 +8,10 @@
 // Add logger mode:
 #define LOGGER
 
-// Provide a menu entry for showing ADC settings:
+// Provide menu entries for setting up ADC:
+#define ADC_SETUP
+
+// Provide menu entries for showing ADC settings:
 #define ADC_INFO
 
 // Detect clipping and give audio feedback:
@@ -47,6 +50,7 @@
 #include <Menu.h>
 #include <Configurator.h>
 #include <TeensyADCSettings.h>
+#include <FishfinderADCSettings.h>
 #include <FishfinderSettings.h>
 #ifdef LOGGER
 #include <LoggerSettings.h>
@@ -60,25 +64,58 @@
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
 
-uint32_t SamplingRate  = 44100;      // samples per second and channel in Hertz, 22.05kHz, 44.1kHz or 96kHz
-uint8_t  Averaging     = 4;          // number of averages per sample: 0, 4, 8, 16, 32 - the higher the better, but the slower
-uint8_t  Bits          = 12;         // resolution: 10bit 12bit, or 16bit 
-ADC_CONVERSION_SPEED ConversionSpeed = ADC_CONVERSION_SPEED::HIGH_SPEED;
-ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
+#define BITS             12 // resolution: 10bit 12bit, or 16bit
+#define REFERENCE     ADC_REFERENCE::REF_3V3
+
+// ADC 1-channel @ 22kHz:
+#define ADC1CH22KHZ_SAMPLING_RATE 22050 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
+#define ADC1CH22KHZ_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
+#define ADC1CH22KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
+#define ADC1CH22KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
+#define ADC1CH22KHZ_ANALYSIS_INTERVAL  0.2 // seconds
+#define ADC1CH22KHZ_ANALYSIS_WINDOW  0.2 // seconds
+
+// ADC 1-channel @ 44kHz:
+#define ADC1CH44KHZ_SAMPLING_RATE 44100 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
+#define ADC1CH44KHZ_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
+#define ADC1CH44KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
+#define ADC1CH44KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
+#define ADC1CH44KHZ_ANALYSIS_INTERVAL  0.2 // seconds
+#define ADC1CH44KHZ_ANALYSIS_WINDOW  0.2 // seconds
+
+// ADC 1-channel @ 96kHz:
+#define ADC1CH96KHZ_SAMPLING_RATE 96000 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
+#define ADC1CH96KHZ_AVERAGING         1 // number of averages per sample: 0, 4, 8, 16, 32
+#define ADC1CH96KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
+#define ADC1CH96KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
+#define ADC1CH96KHZ_ANALYSIS_INTERVAL  0.2 // seconds
+#define ADC1CH96KHZ_ANALYSIS_WINDOW  0.2 // seconds
+
+// ADC 1-channel @ 192kHz:
+#define ADC1CH192KHZ_SAMPLING_RATE 192000 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
+#define ADC1CH192KHZ_AVERAGING         1 // number of averages per sample: 0, 4, 8, 16, 32
+#define ADC1CH192KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
+#define ADC1CH192KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
+#define ADC1CH192KHZ_ANALYSIS_INTERVAL  0.0 // seconds
+#define ADC1CH192KHZ_ANALYSIS_WINDOW  0.0 // seconds
+
+#define VOICE_SAMPLING_RATE 22050 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz 96kHz, or 192kHz
+#define VOICE_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
+#define VOICE_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
+#define VOICE_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
 			
-#define FILENAME         "SDATEFNUM.wav" // may include DATE, SDATE, TIME, STIME, NUM, ANUM
+#define PATH          "fishfinder"    // folder where to store recordings
+#define FILENAME      "SDATEFNUM.wav" // may include DATE, SDATE, TIME, STIME, NUM, ANUM
 
 #ifdef LOGGER
+#define LOGGER_PATH          "logger" // folder where to store logger recordings
 #define LOGGER_FILENAME      "logger1-SDATETIME" // may include DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, ANUM, NUM
 #define LOGGER_FILESAVETIME  1*60          // seconds
-#define LOGGER_INITIALDELAY  1.0            // seconds
+#define LOGGER_INITIALDELAY  1.0           // seconds
 #endif
 
 #define DATA_BUFFER_SIZE 256*96
 #define AUDIO_BLOCKS     4
-
-#define UPDATE_ANALYSIS  0.2 // seconds
-#define ANALYSIS_WINDOW  0.2 // seconds
 
 #define MAX_TEXT_SWAP 5
 #define MAX_FILE_SHOWTIME 30*1000 // 30s
@@ -155,12 +192,46 @@ elapsedMillis DateFileTime;
 RTClock rtclock;
 
 Configurator config;
-TeensyADCSettings aisettings;
-FishfinderSettings settings("fishfinder", FILENAME);
+FishfinderADCSettings ai1ch22khz_settings("ADC 1-Channel @ 22.05kHz",
+					  ADC1CH22KHZ_SAMPLING_RATE,
+					  BITS, ADC1CH22KHZ_AVERAGING,
+					  ADC1CH22KHZ_CONVERSION,
+					  ADC1CH22KHZ_SAMPLING, REFERENCE,
+					  ADC1CH22KHZ_ANALYSIS_INTERVAL,
+					  ADC1CH22KHZ_ANALYSIS_WINDOW);
+FishfinderADCSettings ai1ch44khz_settings("ADC 1-Channel @ 44.1kHz",
+					  ADC1CH44KHZ_SAMPLING_RATE,
+					  BITS, ADC1CH44KHZ_AVERAGING,
+					  ADC1CH44KHZ_CONVERSION,
+					  ADC1CH44KHZ_SAMPLING, REFERENCE,
+					  ADC1CH44KHZ_ANALYSIS_INTERVAL,
+					  ADC1CH44KHZ_ANALYSIS_WINDOW);
+FishfinderADCSettings ai1ch96khz_settings("ADC 1-Channel @ 96kHz",
+					  ADC1CH96KHZ_SAMPLING_RATE,
+					  BITS, ADC1CH96KHZ_AVERAGING,
+					  ADC1CH96KHZ_CONVERSION,
+					  ADC1CH96KHZ_SAMPLING, REFERENCE,
+					  ADC1CH96KHZ_ANALYSIS_INTERVAL,
+					  ADC1CH96KHZ_ANALYSIS_WINDOW);
+FishfinderADCSettings ai1ch192khz_settings("ADC 1-Channel @ 192kHz",
+					   ADC1CH192KHZ_SAMPLING_RATE,
+					   BITS, ADC1CH192KHZ_AVERAGING,
+					   ADC1CH192KHZ_CONVERSION,
+					   ADC1CH192KHZ_SAMPLING, REFERENCE,
+					   ADC1CH192KHZ_ANALYSIS_INTERVAL,
+					   ADC1CH192KHZ_ANALYSIS_WINDOW);
+FishfinderADCSettings *ai_settings[4] = { &ai1ch22khz_settings,
+					  &ai1ch44khz_settings,
+					  &ai1ch96khz_settings,
+					   &ai1ch192khz_settings};
+FishfinderSettings settings(PATH, FILENAME, 1);
 #ifdef LOGGER
-LoggerSettings logger_settings("logger", LOGGER_FILENAME,
+LoggerSettings logger_settings(LOGGER_PATH, LOGGER_FILENAME, 1,
 			       LOGGER_FILESAVETIME, LOGGER_INITIALDELAY);
 #endif
+TeensyADCSettings voice_settings("Voice ADC", VOICE_SAMPLING_RATE, BITS,
+				 VOICE_AVERAGING, VOICE_CONVERSION,
+				 VOICE_SAMPLING, REFERENCE);
 
 AnalysisChain analysis(aidata);
 #ifdef DETECT_CLIPPING
@@ -177,7 +248,10 @@ Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE, &an
 ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 
 PushButtons buttons;
-Menu menu(&screen, &buttons);
+Menu menu;
+Menu settings_menu;
+Menu fishfinder_menu;
+Menu logger_menu;
 Blink blink(RECORD_LED_PIN);
 Blink voiceled(VOICE_LED_PIN);
 
@@ -199,32 +273,23 @@ char clippingids[2][2] = {"", "C"};
 #endif
 
 
-void configureDataADC() {
-  aidata.configure(aisettings);
-  SamplingRate = aidata.rate();
-  Averaging = aidata.averaging();
-  Bits = aidata.resolution();
-  ConversionSpeed = aidata.conversionSpeed();
-  SamplingSpeed = aidata.samplingSpeed();
-}
-
-
-void setupDataADC() {
+void setupDataADC(int i) {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_FRONT);
   //aidata.setChannel(1, CHANNEL_BACK);
-  aidata.setRate(SamplingRate);
-  aidata.setResolution(Bits);
-  aidata.setAveraging(Averaging);
-  aidata.setConversionSpeed(ConversionSpeed);
-  aidata.setSamplingSpeed(SamplingSpeed);
-  aidata.setReference(ADC_REFERENCE::REF_3V3);
+  aidata.configure(*ai_settings[i]);
   aidata.check();
 }
 
 
 #ifdef ADC_INFO
 void showDataADC(int id) {
+  #ifdef LOGGER
+  if (id > 2)
+    setupDataADC(logger_settings.Mode);
+  else
+  #endif
+    setupDataADC(settings.Mode);
   char msg[100];
   String convspeed = aidata.conversionSpeedShortStr();
   String samplspeed = aidata.samplingSpeedShortStr();
@@ -263,11 +328,11 @@ void showDataADC(int id) {
 }
 #endif
 
+
 void setupVoiceADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_VOICE);
-  aidata.setRate(20050.0);
-  aidata.setAveraging(4);
+  aidata.configure(voice_settings);
   aidata.check();
 }
 
@@ -440,11 +505,12 @@ void stopVoiceMessage() {
   screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
   screen.clearText(SCREEN_TEXT_ACTION);
   screen.clearText(SCREEN_TEXT_FILETIME);
-  setupDataADC();
+  setupDataADC(settings.Mode);
   aidata.start();
   aidata.report();
   audio.play();
-  analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
+  analysis.start(ai_settings[settings.Mode]->analysisInterval(),
+		 ai_settings[settings.Mode]->analysisWindow());
   Serial.println("STOP VOICE MESSAGE");
 }
 
@@ -529,7 +595,8 @@ void initButtons() {
   int back = buttons.add(VOICE_PIN, INPUT_PULLUP);
   int up = buttons.add(UP_PIN, INPUT_PULLUP);
   int down = buttons.add(DOWN_PIN, INPUT_PULLUP);
-  menu.setButtons(up, down, select, back);
+  menu.setButtons(&buttons, up, down, select, back);
+  menu.setDisplay(&screen);
 }
 
 
@@ -697,12 +764,23 @@ void setupAnalysis() {
   plotting.setSkipping(4);
   plotting.setWindow(0.01);
   plotting.setAlignMax(0.5);        // align maximum in center of plot
-  analysis.start(UPDATE_ANALYSIS, ANALYSIS_WINDOW);
+  analysis.start(ai_settings[settings.Mode]->analysisInterval(),
+		 ai_settings[settings.Mode]->analysisWindow());
+}
+
+
+void selectFishfinderMode(int id) {
+  settings.Mode = id;
+}
+
+
+void selectLoggerMode(int id) {
+  logger_settings.Mode = id;
 }
 
 
 #ifdef MTP_RESPONDER
-void run_mtp_responder() {
+void runMTPResponder() {
   screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
   screen.writeText(0, SOFTWARE);
   screen.setTextArea(1, 0.4, 0.4, 0.6, 0.6);
@@ -731,8 +809,9 @@ void run_mtp_responder() {
 
 
 #ifdef LOGGER
-void logger_setup(int id) {
+void runLogger(int id) {
   screen.setBacklightOff();
+  setupDataADC(logger_settings.Mode);
   setupStorage(logger_settings.Path);
   datafile.setMaxFileTime(logger_settings.FileTime);
   aidata.check();
@@ -763,6 +842,80 @@ void logger_setup(int id) {
 #endif
 
 
+void runFishfinder(int id) {
+  setupDataADC(settings.Mode);
+  setupStorage(settings.Path);
+  setupScreen();
+  setupAudio();
+  setupAnalysis();
+  setupButtons();
+  aidata.start();
+  aidata.report();
+  blink.switchOff();
+  voiceled.switchOff();
+  while (1) {
+    buttons.update();
+    storeData();
+    analysis.update();
+    audio.update();
+    blink.update();
+    if ((DateFileTime > MAX_FILE_SHOWTIME) && ! reporttime.enabled())
+      reactivateBaseScreen();
+    yield();
+  }
+}
+
+
+void initMenu() {
+#ifdef ADC_SETUP
+  fishfinder_menu.setTitle("Fishfinder recording mode");
+#ifdef LOGGER
+  logger_menu.setTitle("Logger recording mode");
+#endif
+  for (int k=0; k<4; k++) {
+    if (ai_settings[k]->analysisWindow() > 0)
+      fishfinder_menu.addRadioButton(ai_settings[k]->name(),
+				     k==settings.Mode);
+#ifdef LOGGER
+    logger_menu.addRadioButton(ai_settings[k]->name(),
+			       k==logger_settings.Mode);
+#endif
+  }
+  fishfinder_menu.setCheckedAction(selectFishfinderMode);
+  fishfinder_menu.setCheckedReturns();
+#ifdef LOGGER
+  logger_menu.setCheckedAction(selectLoggerMode);
+  logger_menu.setCheckedReturns();
+#endif
+  settings_menu.addMenu("Setup fishfinder", fishfinder_menu);
+#ifdef LOGGER
+  settings_menu.addMenu("Setup logger", logger_menu);
+#endif
+#ifdef ADC_INFO
+  settings_menu.addAction("Show fishfinder settings", showDataADC, 2);
+#ifdef LOGGER
+  settings_menu.addAction("Show logger settings", showDataADC, 3);
+#endif
+#endif
+#endif
+  menu.setTitle(SOFTWARE);
+  menu.addAction("Run as fishfinder", runFishfinder, 0);
+#ifdef LOGGER
+  menu.addAction("Run as logger", runLogger, 1);
+#endif
+#ifdef ADC_SETUP
+  menu.addMenu("Settings", settings_menu);
+#else
+#ifdef ADC_INFO
+  menu.addAction("Show fishfinder settings", showDataADC, 2);
+#ifdef LOGGER
+  menu.addAction("Show logger settings", showDataADC, 3);
+#endif
+#endif
+#endif
+}
+
+
 // ---------------------------------------------------------------------------
 
 void setup() {
@@ -774,26 +927,16 @@ void setup() {
   rtclock.check();
   rtclock.report();
   initScreen(screen);
+  initMenu();
   initButtons();
 #ifdef MTP_RESPONDER
   if (usb_configuration)
-    run_mtp_responder();
+    runMTPResponder();
 #endif
-  setupDataADC();
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
   config.configure(sdcard);
-  configureDataADC();
-  aidata.check();
   DateFileTime = 0;
-  menu.setTitle(SOFTWARE);
-  menu.add("Run as fishfinder", 0);
-#ifdef LOGGER
-  menu.addAction("Run as logger", logger_setup, 1);
-#endif
-#ifdef ADC_INFO
-  menu.addAction("Show settings", showDataADC, 2);
-#endif
   screen.setBacklightOn();
   if (menu.nActions() > 1) {
     int selected = menu.exec();
@@ -801,24 +944,9 @@ void setup() {
       while (1) {};
     }
   }
-  setupStorage(settings.Path);
-  setupScreen();
-  setupAudio();
-  setupAnalysis();
-  setupButtons();
-  aidata.start();
-  aidata.report();
-  blink.switchOff();
-  voiceled.switchOff();
+  runFishfinder(0);
 }
 
 
 void loop() {
-  buttons.update();
-  storeData();
-  analysis.update();
-  audio.update();
-  blink.update();
-  if ((DateFileTime > MAX_FILE_SHOWTIME) && ! reporttime.enabled())
-    reactivateBaseScreen();
 }

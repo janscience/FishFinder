@@ -29,11 +29,11 @@ void FishfinderADCSettings::configure(const char *key, const char *val) {
   char pval[30];
   if (strcmp(key, "analysisinterval") == 0) {
     setAnalysisInterval(parseTime(val));
-    sprintf(pval, "%.2s", AnalysisInterval);
+    sprintf(pval, "%.0fms", 1000.0*AnalysisInterval);
   }
   else if (strcmp(key, "analysiswindow") == 0) {
     setAnalysisWindow(parseTime(val));
-    sprintf(pval, "%.2s", AnalysisWindow);
+    sprintf(pval, "%.0fms", 1000.0*AnalysisWindow);
   }
   else {
     TeensyADCSettings::configure(key, val);
