@@ -19,11 +19,6 @@
 
 //#define COMPUTE_CORRELATIONS    // TODO: not fully implemented yet
 
-#include <Configurator.h>
-#include <FishfinderSettings.h>
-#ifdef LOGGER
-#include <LoggerSettings.h>
-#endif
 #include <TeensyADC.h>
 #include <AudioMonitor.h>
 #include <SDWriter.h>
@@ -50,6 +45,12 @@
 #include <PushButtons.h>
 #include <Blink.h>
 #include <Menu.h>
+#include <Configurator.h>
+#include <TeensyADCSettings.h>
+#include <FishfinderSettings.h>
+#ifdef LOGGER
+#include <LoggerSettings.h>
+#endif
 
 
 #define DEBUG
@@ -132,13 +133,6 @@ ADC_SAMPLING_SPEED   SamplingSpeed   = ADC_SAMPLING_SPEED::HIGH_SPEED;
 
 // ----------------------------------------------------------------------------
 
-Configurator config;
-FishfinderSettings settings("fishfinder", FILENAME);
-#ifdef LOGGER
-LoggerSettings logger_settings("logger", LOGGER_FILENAME,
-			       LOGGER_FILESAVETIME, LOGGER_INITIALDELAY);
-#endif
-
 DATA_BUFFER(AIBuffer, NAIBuffer, DATA_BUFFER_SIZE);
 TeensyADC aidata(AIBuffer, NAIBuffer);
 
@@ -159,6 +153,14 @@ int SwapCounter;
 elapsedMillis DateFileTime;
 
 RTClock rtclock;
+
+Configurator config;
+TeensyADCSettings aisettings;
+FishfinderSettings settings("fishfinder", FILENAME);
+#ifdef LOGGER
+LoggerSettings logger_settings("logger", LOGGER_FILENAME,
+			       LOGGER_FILESAVETIME, LOGGER_INITIALDELAY);
+#endif
 
 AnalysisChain analysis(aidata);
 #ifdef DETECT_CLIPPING
@@ -198,6 +200,7 @@ char clippingids[2][2] = {"", "C"};
 
 
 void configureDataADC() {
+  aidata.configure(aisettings);
   SamplingRate = aidata.rate();
   Averaging = aidata.averaging();
   Bits = aidata.resolution();
