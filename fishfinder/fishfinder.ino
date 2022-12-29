@@ -11,9 +11,6 @@
 // Provide menu entries for setting up ADC:
 #define ADC_SETUP
 
-// Provide menu entries for showing ADC settings:
-#define ADC_INFO
-
 // Detect clipping and give audio feedback:
 #define DETECT_CLIPPING
 
@@ -282,7 +279,7 @@ void setupDataADC(int i) {
 }
 
 
-#ifdef ADC_INFO
+#ifdef ADC_SETUP
 void showDataADC(int id) {
   #ifdef LOGGER
   if (id > 2)
@@ -891,11 +888,9 @@ void initMenu() {
 #ifdef LOGGER
   settings_menu.addMenu("Setup logger", logger_menu);
 #endif
-#ifdef ADC_INFO
   settings_menu.addAction("Show fishfinder settings", showDataADC, 2);
 #ifdef LOGGER
   settings_menu.addAction("Show logger settings", showDataADC, 3);
-#endif
 #endif
 #endif
   menu.setTitle(SOFTWARE);
@@ -906,11 +901,9 @@ void initMenu() {
 #ifdef ADC_SETUP
   menu.addMenu("Settings", settings_menu);
 #else
-#ifdef ADC_INFO
   menu.addAction("Show fishfinder settings", showDataADC, 2);
 #ifdef LOGGER
   menu.addAction("Show logger settings", showDataADC, 3);
-#endif
 #endif
 #endif
 }
