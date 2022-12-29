@@ -11,6 +11,9 @@
 // Provide menu entries for setting up ADC:
 #define ADC_SETUP
 
+// Store selection in EEPROM:
+#define STORE_SETUP
+
 // Detect clipping and give audio feedback:
 #define DETECT_CLIPPING
 
@@ -52,7 +55,9 @@
 #ifdef LOGGER
 #include <LoggerSettings.h>
 #endif
-
+#ifdef STORE_SETUP
+#include <EEPROM.h>
+#endif
 
 #define DEBUG
 
@@ -217,10 +222,11 @@ FishfinderADCSettings ai1ch192khz_settings("1-Channel @ 192kHz",
 					   ADC1CH192KHZ_SAMPLING, REFERENCE,
 					   ADC1CH192KHZ_ANALYSIS_INTERVAL,
 					   ADC1CH192KHZ_ANALYSIS_WINDOW);
-FishfinderADCSettings *ai_settings[4] = { &ai1ch22khz_settings,
-					  &ai1ch44khz_settings,
-					  &ai1ch96khz_settings,
-					   &ai1ch192khz_settings};
+#define MAX_SETTINGS 4
+FishfinderADCSettings *ai_settings[MAX_SETTINGS] = { &ai1ch22khz_settings,
+						     &ai1ch44khz_settings,
+						     &ai1ch96khz_settings,
+						     &ai1ch192khz_settings};
 FishfinderSettings settings(PATH, FILENAME, 1);
 #ifdef LOGGER
 LoggerSettings logger_settings(LOGGER_PATH, LOGGER_FILENAME, 1,
@@ -863,13 +869,38 @@ void runFishfinder(int id) {
 }
 
 
+#ifdef STORE_SETUP
+void saveSettings(int id) {
+  int mode = 0;
+  EEPROM.get(0, mode);
+  if (settings.Mode != mode)
+    EEPROM.put(0, settings.Mode);
+#ifdef LOGGER
+  EEPROM.get(sizeof(settings.Mode), mode);
+  if (logger_settings.Mode != mode)
+    EEPROM.put(sizeof(settings.Mode), logger_settings.Mode);
+#endif
+}
+#endif
+
+
 void initMenu() {
+#ifdef STORE_SETUP
+  EEPROM.get(0, settings.Mode);
+  if (settings.Mode < 0 || settings.Mode >= MAX_SETTINGS)
+    settings.Mode = 1;
+#ifdef LOGGER
+  EEPROM.get(sizeof(settings.Mode), logger_settings.Mode);
+  if (logger_settings.Mode < 0 || logger_settings.Mode >= MAX_SETTINGS)
+    logger_settings.Mode = 1;
+#endif
+#endif
 #ifdef ADC_SETUP
   fishfinder_menu.setTitle("Fishfinder recording mode");
 #ifdef LOGGER
   logger_menu.setTitle("Logger recording mode");
 #endif
-  for (int k=0; k<4; k++) {
+  for (int k=0; k<MAX_SETTINGS; k++) {
     if (ai_settings[k]->analysisWindow() > 0)
       fishfinder_menu.addRadioButton(ai_settings[k]->name(),
 				     k==settings.Mode);
@@ -891,6 +922,9 @@ void initMenu() {
   settings_menu.addAction("Show fishfinder settings", showDataADC, 2);
 #ifdef LOGGER
   settings_menu.addAction("Show logger settings", showDataADC, 3);
+#endif
+#ifdef STORE_SETUP
+  settings_menu.addAction("Save settings", saveSettings);
 #endif
 #endif
   menu.setTitle(SOFTWARE);
