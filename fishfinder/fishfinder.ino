@@ -880,6 +880,26 @@ void saveSettings(int id) {
   if (logger_settings.Mode != mode)
     EEPROM.put(sizeof(settings.Mode), logger_settings.Mode);
 #endif
+  screen.clear();
+  screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
+  screen.writeText(0, SOFTWARE);
+  screen.setTextArea(1, 0.24, 0.4, 0.76, 0.6);
+  screen.swapTextColors(1);
+  screen.writeText(1, " settings saved! ");
+  screen.setTextArea(2, 0.23, 0.1, 0.77, 0.2);
+  screen.writeText(2, "press any button");
+  screen.setBacklightOn();
+  id = -1;
+  while (1) {
+    buttons.update();
+    id = buttons.pressedAny();
+    if (id >= 0)
+      break;
+    yield();
+  }
+  buttons.waitReleased(id);
+  screen.swapTextColors(1);
+  screen.clear();
 }
 #endif
 
