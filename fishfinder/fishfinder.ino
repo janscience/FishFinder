@@ -261,6 +261,7 @@ Blink voiceled(VOICE_LED_PIN);
 String prevname; // previous file name without increment
 String lastname; // last recorded file name
 int restarts = 0;
+bool run = true;
 int updownstate = 0;    // how to use up/down buttons
 const int maxupdownstates = 3; // number of different usages for up/down buttons
 char updownids[maxupdownstates][2] = {"V", "X", "Y"};
@@ -374,6 +375,7 @@ void setupScreen() {
 
 void reactivateBaseScreen() {
     reporttime.enable();
+    screen.clearText(SCREEN_TEXT_ACTION);
 #ifdef DETECT_CLIPPING
     screen.writeText(SCREEN_TEXT_CLIPPING,
                      clippingids[clipping.feedbackEnabled()]);
@@ -466,7 +468,6 @@ void stopRecording() {
   datafile.write();
   datafile.closeWave();
   blink.clear();
-  screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
   screen.clearText(SCREEN_TEXT_ACTION);
   screen.clearText(SCREEN_TEXT_FILETIME);
   Serial.println("  stopped recording\n");
@@ -503,7 +504,6 @@ void stopVoiceMessage() {
   voicefile.closeWave();
   voiceled.clear();
   aidata.stop();
-  screen.setDefaultTextColors(SCREEN_TEXT_ACTION);
   screen.clearText(SCREEN_TEXT_ACTION);
   screen.clearText(SCREEN_TEXT_FILETIME);
   setupDataADC(settings.Mode);
@@ -521,8 +521,18 @@ void toggleRecord(int id) {
     stopVoiceMessage();
   else if (datafile.isOpen())
     stopRecording();
-  else if (! reporttime.enabled())
-    reactivateBaseScreen();
+  else if (! reporttime.enabled()) {
+    if (lastname.length() > 0 &&
+	buttons.button(id)->previousDuration() > 500) {
+      sdcard.removeFile(lastname.c_str());
+      lastname = "";
+      screen.writeText(SCREEN_TEXT_ACTION, "DELETED");
+    }
+    else
+      reactivateBaseScreen();
+  }
+  else if (buttons.button(id)->previousDuration() > 500)
+    run = false;
   else
     startRecording();
   DateFileTime = 0;
@@ -805,14 +815,13 @@ void runMTPResponder() {
     yield();
   }
   buttons.waitReleased(id);
-  screen.swapTextColors(1);
   screen.clear();
 }
 #endif
 
 
 #ifdef LOGGER
-void runLogger(int id) {
+void runLogger(int id=0) {
   screen.setBacklightOff();
   setupDataADC(logger_settings.Mode);
   setupStorage(logger_settings.Path);
@@ -845,7 +854,7 @@ void runLogger(int id) {
 #endif
 
 
-void runFishfinder(int id) {
+void runFishfinder(int id=0) {
   setupDataADC(settings.Mode);
   setupStorage(settings.Path);
   setupScreen();
@@ -856,7 +865,8 @@ void runFishfinder(int id) {
   aidata.report();
   blink.switchOff();
   voiceled.switchOff();
-  while (1) {
+  run = true;
+  while (run) {
     buttons.update();
     storeData();
     analysis.update();
@@ -898,7 +908,6 @@ void saveSettings(int id) {
     yield();
   }
   buttons.waitReleased(id);
-  screen.swapTextColors(1);
   screen.clear();
 }
 #endif
@@ -986,12 +995,11 @@ void setup() {
   DateFileTime = 0;
   screen.setBacklightOn();
   if (menu.nActions() > 1) {
-    int selected = menu.exec();
-    if (selected > 0) {
-      while (1) {};
+    while (1) {
+      menu.exec();
     }
   }
-  runFishfinder(0);
+  runFishfinder();
 }
 
 
