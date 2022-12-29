@@ -192,28 +192,28 @@ elapsedMillis DateFileTime;
 RTClock rtclock;
 
 Configurator config;
-FishfinderADCSettings ai1ch22khz_settings("ADC 1-Channel @ 22.05kHz",
+FishfinderADCSettings ai1ch22khz_settings("1-Channel @ 22.05kHz",
 					  ADC1CH22KHZ_SAMPLING_RATE,
 					  BITS, ADC1CH22KHZ_AVERAGING,
 					  ADC1CH22KHZ_CONVERSION,
 					  ADC1CH22KHZ_SAMPLING, REFERENCE,
 					  ADC1CH22KHZ_ANALYSIS_INTERVAL,
 					  ADC1CH22KHZ_ANALYSIS_WINDOW);
-FishfinderADCSettings ai1ch44khz_settings("ADC 1-Channel @ 44.1kHz",
+FishfinderADCSettings ai1ch44khz_settings("1-Channel @ 44.1kHz",
 					  ADC1CH44KHZ_SAMPLING_RATE,
 					  BITS, ADC1CH44KHZ_AVERAGING,
 					  ADC1CH44KHZ_CONVERSION,
 					  ADC1CH44KHZ_SAMPLING, REFERENCE,
 					  ADC1CH44KHZ_ANALYSIS_INTERVAL,
 					  ADC1CH44KHZ_ANALYSIS_WINDOW);
-FishfinderADCSettings ai1ch96khz_settings("ADC 1-Channel @ 96kHz",
+FishfinderADCSettings ai1ch96khz_settings("1-Channel @ 96kHz",
 					  ADC1CH96KHZ_SAMPLING_RATE,
 					  BITS, ADC1CH96KHZ_AVERAGING,
 					  ADC1CH96KHZ_CONVERSION,
 					  ADC1CH96KHZ_SAMPLING, REFERENCE,
 					  ADC1CH96KHZ_ANALYSIS_INTERVAL,
 					  ADC1CH96KHZ_ANALYSIS_WINDOW);
-FishfinderADCSettings ai1ch192khz_settings("ADC 1-Channel @ 192kHz",
+FishfinderADCSettings ai1ch192khz_settings("1-Channel @ 192kHz",
 					   ADC1CH192KHZ_SAMPLING_RATE,
 					   BITS, ADC1CH192KHZ_AVERAGING,
 					   ADC1CH192KHZ_CONVERSION,
