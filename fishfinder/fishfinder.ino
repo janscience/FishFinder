@@ -285,7 +285,6 @@ void setupDataADC(int i) {
 }
 
 
-#ifdef ADC_SETUP
 void showDataADC(int id) {
   #ifdef LOGGER
   if (id > 2)
@@ -329,7 +328,6 @@ void showDataADC(int id) {
   screen.fadeBacklightOff();
   screen.clearText();
 }
-#endif
 
 
 void setupVoiceADC() {
@@ -777,9 +775,11 @@ void selectFishfinderMode(int id) {
 }
 
 
+#ifdef LOGGER
 void selectLoggerMode(int id) {
   logger_settings.Mode = id;
 }
+#endif
 
 
 #ifdef MTP_RESPONDER
