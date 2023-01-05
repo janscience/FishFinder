@@ -23,9 +23,10 @@ Smart fishfinders for better EOD recordings of electric fish in the field.
 <img src="docs/images/20221209F02.png" width=100%>
 
 
-## Usage
+## Installation and Usage
 
-Read the [user manual](docs/usage.md).
+- [Installation instructions](docs/install.md)
+- [User manual](docs/usage.md)
 
 
 ## Sketches
