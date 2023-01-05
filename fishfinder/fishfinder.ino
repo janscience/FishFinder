@@ -869,7 +869,7 @@ void runFishfinder(int id=0) {
   while (run) {
     buttons.update();
     storeData();
-    analysis.update();
+    analysis.update();        
     audio.update();
     blink.update();
     if ((DateFileTime > MAX_FILE_SHOWTIME) && ! reporttime.enabled())
