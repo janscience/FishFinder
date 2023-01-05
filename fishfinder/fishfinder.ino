@@ -873,9 +873,13 @@ void runFishfinder(int id=0) {
     audio.update();
     blink.update();
     if ((DateFileTime > MAX_FILE_SHOWTIME) && ! reporttime.enabled())
-      reactivateBaseScreen();
+      break;
     yield();
   }
+  analysis.stop();
+  audio.pause();
+  aidata.stop();
+  reactivateBaseScreen();
 }
 
 
