@@ -625,7 +625,7 @@ void setupStorage(const char *path) {
   if (datafile.sdcard()->dataDir(path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", path);
   datafile.setWriteInterval();
-  datafile.setSoftware(SOFTWARE);
+  datafile.header().setSoftware(SOFTWARE);
 }
 
 
