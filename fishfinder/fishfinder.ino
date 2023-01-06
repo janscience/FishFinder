@@ -803,8 +803,7 @@ void runMTPResponder() {
   screen.writeText(2, "file transfer");
   screen.setBacklightOn();
   MTP.begin();
-  SD.begin(BUILTIN_SDCARD);
-  MTP.addFilesystem(SD, "Fishfinder");
+  MTP.addFilesystem(sdcard, "Fishfinder");
   int id = -1;
   while (1) {
     MTP.loop();
@@ -989,11 +988,11 @@ void setup() {
   initScreen(screen);
   initMenu();
   initButtons();
+  sdcard.begin();
 #ifdef MTP_RESPONDER
   if (usb_configuration)
     runMTPResponder();
 #endif
-  sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
   config.configure(sdcard);
   DateFileTime = 0;
