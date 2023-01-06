@@ -396,10 +396,10 @@ String makeFileName(const char *filename) {
   time_t t = now();
   String name = rtclock.makeStr(filename, t, true);
   if (name != prevname) {
-    datafile.resetFileCounter();
+    datafile.sdcard()->resetFileCounter();
     prevname = name;
   }
-  name = datafile.incrementFileName(name);
+  name = datafile.sdcard()->incrementFileName(name);
   if (name.length() <= 0) {
     Serial.println("WARNING: failed to increment file name.");
     diskFull();
@@ -622,7 +622,7 @@ void setupButtons() {
 void setupStorage(const char *path) {
   prevname = "";
   lastname = "";
-  if (datafile.dataDir(path))
+  if (datafile.sdcard()->dataDir(path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", path);
   datafile.setWriteInterval();
   datafile.setSoftware(SOFTWARE);
