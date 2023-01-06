@@ -524,7 +524,7 @@ void toggleRecord(int id) {
   else if (! reporttime.enabled()) {
     if (lastname.length() > 0 &&
 	buttons.button(id)->previousDuration() > 500) {
-      sdcard.removeFile(lastname.c_str());
+      sdcard.remove(lastname.c_str());
       lastname = "";
       screen.writeText(SCREEN_TEXT_ACTION, "DELETED");
     }
@@ -657,7 +657,7 @@ void storeData() {
         datafile.closeWave();
         char mfs[20];
         sprintf(mfs, "error%d-%d.msg", restarts+1, -samples);
-        SDFILE mf = sdcard.openWrite(mfs);
+        File mf = sdcard.openWrite(mfs);
         mf.close();
       }
     }
@@ -719,7 +719,7 @@ void loggerStoreData() {
         datafile.closeWave();
         char mfs[20];
         sprintf(mfs, "error%d-%d.msg", restarts+1, -samples);
-        SDFILE mf = sdcard.openWrite(mfs);
+        File mf = sdcard.openWrite(mfs);
         mf.close();
       }
     }
