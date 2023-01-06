@@ -11,6 +11,9 @@
 // Provide menu entries for setting up ADC:
 #define ADC_SETUP
 
+// Provide menu entry for formatting SD card:
+#define SDFORMAT
+
 // Store selection in EEPROM:
 #define STORE_SETUP
 
@@ -819,6 +822,22 @@ void runMTPResponder() {
 #endif
 
 
+#ifdef SDFORMAT
+void formatSDCard(int id=0) {
+  screen.clear();
+  screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
+  screen.writeText(0, SOFTWARE);
+  screen.setTextArea(1, 0.22, 0.4, 0.78, 0.6);
+  screen.swapTextColors(1);
+  screen.writeText(1, " Format SD card");
+  screen.setTextArea(2, 0.27, 0.2, 0.73, 0.3);
+  screen.writeText(2, "in progress ...");
+  screen.setBacklightOn();
+  sdcard.format("fishfinder.cfg");
+}
+#endif
+
+
 #ifdef LOGGER
 void runLogger(int id=0) {
   screen.setBacklightOff();
@@ -971,6 +990,9 @@ void initMenu() {
 #ifdef LOGGER
   menu.addAction("Show logger settings", showDataADC, 3);
 #endif
+#endif
+#ifdef SDFORMAT
+  menu.addAction("Format SD card", formatSDCard, 4);
 #endif
 }
 
