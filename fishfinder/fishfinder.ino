@@ -52,6 +52,7 @@
 #include <Blink.h>
 #include <Menu.h>
 #include <Configurator.h>
+#include <DeviceSettings.h>
 #include <TeensyADCSettings.h>
 #include <FishfinderADCSettings.h>
 #include <FishfinderSettings.h>
@@ -108,13 +109,15 @@
 #define VOICE_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
 #define VOICE_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
 #define VOICE_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
-			
+
+#define DEVICE_NAME   "2"             // Name of device for file names.
+
 #define PATH          "fishfinder"    // folder where to store recordings
-#define FILENAME      "SDATEFNUM.wav" // may include DATE, SDATE, TIME, STIME, NUM, ANUM
+#define FILENAME      "ffDEV-SDATENNUM.wav" // may include DEV, DATE, SDATE, TIME, STIME, NUM, ANUM
 
 #ifdef LOGGER
 #define LOGGER_PATH          "logger" // folder where to store logger recordings
-#define LOGGER_FILENAME      "logger1-SDATETIME" // may include DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, ANUM, NUM
+#define LOGGER_FILENAME      "loggerDEV-SDATETIME" // may include DEV, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, ANUM, NUM
 #define LOGGER_FILESAVETIME  1*60          // seconds
 #define LOGGER_INITIALDELAY  1.0           // seconds
 #endif
@@ -197,6 +200,7 @@ elapsedMillis DateFileTime;
 RTClock rtclock;
 
 Configurator config;
+DeviceSettings device_settings(DEVICE_NAME);
 FishfinderADCSettings ai1ch22khz_settings("1-Channel @ 22.05kHz",
 					  ADC1CH22KHZ_SAMPLING_RATE,
 					  BITS, ADC1CH22KHZ_AVERAGING,
@@ -396,8 +400,11 @@ void diskFull() {
 
 String makeFileName(const char *filename) {
   CHECK_MEMORY
+  String name = filename;
+  if (name.indexOf("DEV") >= 0)
+    name.replace("DEV", device_settings.DeviceName);
   time_t t = now();
-  String name = rtclock.makeStr(filename, t, true);
+  name = rtclock.makeStr(name, t, true);
   if (name != prevname) {
     datafile.sdcard()->resetFileCounter();
     prevname = name;
@@ -426,10 +433,13 @@ bool openFile(const String &name) {
   lastname = name;
   datafile.setMaxFileSamples(0);
   datafile.start();
+  Serial.println(name);
   // all screen writing 210ms:
+  int idx = name.lastIndexOf('.');
+  if (idx >= 0)
+    name.remove(idx);
   screen.writeText(SCREEN_TEXT_ACTION, "REC");
   screen.writeText(SCREEN_TEXT_DATEFILE, name.c_str());
-  Serial.println(name);
   blink.setSingle();
   blink.blinkSingle(0, 1000);
   return true;
@@ -458,6 +468,7 @@ bool openNextFile(const String &name) {
   return true;
 }
 #endif
+
 
 void startRecording() {
   reporttime.disable();
@@ -980,7 +991,11 @@ void initMenu() {
   settings_menu.addAction("Save settings", saveSettings);
 #endif
 #endif
-  menu.setTitle(SOFTWARE);
+  char title[50];
+  strcpy(title, SOFTWARE);
+  strcat(title, "     Device ");
+  strcat(title, device_settings.DeviceName);
+  menu.setTitle(title);
   menu.addAction("Run as fishfinder", runFishfinder, 0);
 #ifdef LOGGER
   menu.addAction("Run as logger", runLogger, 1);
