@@ -797,6 +797,7 @@ void selectLoggerMode(int id) {
 
 #ifdef MTP_RESPONDER
 void runMTPResponder() {
+  screen.clear();
   screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
   screen.writeText(0, SOFTWARE);
   screen.setTextArea(1, 0.4, 0.4, 0.6, 0.6);
@@ -897,7 +898,6 @@ void runFishfinder(int id=0) {
   analysis.stop();
   audio.pause();
   aidata.stop();
-  reactivateBaseScreen();
 }
 
 
@@ -932,11 +932,9 @@ void saveSettings(int id) {
   buttons.waitReleased(id);
   screen.clear();
 }
-#endif
 
 
-void initMenu() {
-#ifdef STORE_SETUP
+void loadSettings() {
   EEPROM.get(0, settings.Mode);
   if (settings.Mode < 0 || settings.Mode >= MAX_SETTINGS)
     settings.Mode = 1;
@@ -945,7 +943,11 @@ void initMenu() {
   if (logger_settings.Mode < 0 || logger_settings.Mode >= MAX_SETTINGS)
     logger_settings.Mode = 1;
 #endif
+}
 #endif
+
+
+void initMenu() {
 #ifdef ADC_SETUP
   fishfinder_menu.setTitle("Fishfinder recording mode");
 #ifdef LOGGER
@@ -1008,19 +1010,20 @@ void setup() {
   rtclock.check();
   rtclock.report();
   initScreen(screen);
-  initMenu();
-  initButtons();
+  loadSettings();
   sdcard.begin();
-#ifdef MTP_RESPONDER
-  if (usb_configuration)
-    runMTPResponder();
-#endif
   config.setConfigFile("fishfinder.cfg");
   config.configure(sdcard);
+  initMenu();
+  initButtons();
   DateFileTime = 0;
   screen.setBacklightOn();
   if (menu.nActions() > 1) {
     while (1) {
+#ifdef MTP_RESPONDER
+      if (usb_configuration)
+	runMTPResponder();
+#endif
       menu.exec();
     }
   }
