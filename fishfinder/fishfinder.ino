@@ -916,6 +916,56 @@ void runFishfinder(int id=0) {
 
 
 #ifdef STORE_SETUP
+void resetSettings(int id) {
+  int addr = 0;
+  int mode = 0;
+  EEPROM.get(addr, mode);
+  if (mode != 1) {
+    settings.Mode = 1;
+    EEPROM.put(addr, settings.Mode);
+  }
+  addr += sizeof(settings.Mode);
+#ifdef LOGGER
+  EEPROM.get(addr, mode);
+  if (mode != 1) {
+    logger_settings.Mode = 1;
+    EEPROM.put(addr, logger_settings.Mode);
+  }
+  addr += sizeof(logger_settings.Mode);
+#endif
+  char device_name[device_settings.MaxStr];
+  EEPROM.get(addr, device_name);
+  if (strcmp(device_name, DEVICE_NAME) != 0) {
+    strcpy(device_settings.DeviceName, DEVICE_NAME);
+    EEPROM.put(addr, device_settings.DeviceName);
+  }
+  addr += sizeof(device_settings.DeviceName);
+  char title[50];
+  strcpy(title, SOFTWARE);
+  strcat(title, "     Device ");
+  strcat(title, device_settings.DeviceName);
+  menu.setTitle(title);
+  screen.clear();
+  screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
+  screen.writeText(0, SOFTWARE);
+  screen.setTextArea(1, 0.17, 0.4, 0.83, 0.6);
+  screen.swapTextColors(1);
+  screen.writeText(1, " settings resetted! ");
+  screen.setTextArea(2, 0.23, 0.1, 0.77, 0.2);
+  screen.writeText(2, "press any button");
+  screen.setBacklightOn();
+  id = -1;
+  while (1) {
+    buttons.update();
+    id = buttons.pressedAny();
+    if (id >= 0)
+      break;
+    yield();
+  }
+  buttons.waitReleased(id);
+  screen.clear();
+}
+
 void saveSettings(int id) {
   int addr = 0;
   int mode = 0;
@@ -1009,6 +1059,7 @@ void initMenu() {
 #endif
 #ifdef STORE_SETUP
   settings_menu.addAction("Save settings", saveSettings);
+  settings_menu.addAction("Reset settings", resetSettings);
 #endif
 #endif
   char title[50];
