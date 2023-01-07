@@ -18,7 +18,7 @@ public:
   
   virtual void configure(const char *key, const char *val);
 
-  static const size_t MaxStr = 100;
+  static const size_t MaxStr = 10;
   char DeviceName[MaxStr];
 };
 

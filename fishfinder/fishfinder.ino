@@ -110,7 +110,7 @@
 #define VOICE_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
 #define VOICE_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
 
-#define DEVICE_NAME   "2"             // Name of device for file names.
+#define DEVICE_NAME   "1"             // Name of device for file names.
 
 #define PATH          "fishfinder"    // folder where to store recordings
 #define FILENAME      "ffDEV-SDATENNUM.wav" // may include DEV, DATE, SDATE, TIME, STIME, NUM, ANUM
@@ -435,11 +435,12 @@ bool openFile(const String &name) {
   datafile.start();
   Serial.println(name);
   // all screen writing 210ms:
-  int idx = name.lastIndexOf('.');
+  String sname = name;
+  int idx = sname.lastIndexOf('.');
   if (idx >= 0)
-    name.remove(idx);
+    sname.remove(idx);
   screen.writeText(SCREEN_TEXT_ACTION, "REC");
-  screen.writeText(SCREEN_TEXT_DATEFILE, name.c_str());
+  screen.writeText(SCREEN_TEXT_DATEFILE, sname.c_str());
   blink.setSingle();
   blink.blinkSingle(0, 1000);
   return true;
@@ -636,6 +637,7 @@ void setupButtons() {
 void setupStorage(const char *path) {
   prevname = "";
   lastname = "";
+  datafile.sdcard()->rootDir();
   if (datafile.sdcard()->dataDir(path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", path);
   datafile.setWriteInterval();
@@ -909,20 +911,29 @@ void runFishfinder(int id=0) {
   analysis.stop();
   audio.pause();
   aidata.stop();
+  datafile.sdcard()->rootDir();
 }
 
 
 #ifdef STORE_SETUP
 void saveSettings(int id) {
+  int addr = 0;
   int mode = 0;
-  EEPROM.get(0, mode);
+  EEPROM.get(addr, mode);
   if (settings.Mode != mode)
-    EEPROM.put(0, settings.Mode);
+    EEPROM.put(addr, settings.Mode);
+  addr += sizeof(settings.Mode);
 #ifdef LOGGER
-  EEPROM.get(sizeof(settings.Mode), mode);
+  EEPROM.get(addr, mode);
   if (logger_settings.Mode != mode)
-    EEPROM.put(sizeof(settings.Mode), logger_settings.Mode);
+    EEPROM.put(addr, logger_settings.Mode);
+  addr += sizeof(logger_settings.Mode);
 #endif
+  char device_name[device_settings.MaxStr];
+  EEPROM.get(addr, device_name);
+  if (strcmp(device_settings.DeviceName, device_name) != 0)
+    EEPROM.put(addr, device_settings.DeviceName);
+  addr += sizeof(device_settings.DeviceName);
   screen.clear();
   screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
   screen.writeText(0, SOFTWARE);
@@ -946,14 +957,23 @@ void saveSettings(int id) {
 
 
 void loadSettings() {
-  EEPROM.get(0, settings.Mode);
+  int addr = 0;
+  EEPROM.get(addr, settings.Mode);
   if (settings.Mode < 0 || settings.Mode >= MAX_SETTINGS)
     settings.Mode = 1;
+  addr += sizeof(settings.Mode);
 #ifdef LOGGER
-  EEPROM.get(sizeof(settings.Mode), logger_settings.Mode);
+  EEPROM.get(addr, logger_settings.Mode);
   if (logger_settings.Mode < 0 || logger_settings.Mode >= MAX_SETTINGS)
     logger_settings.Mode = 1;
+  addr += sizeof(logger_settings.Mode);
 #endif
+  /*
+  char device_name[device_settings.MaxStr];
+  EEPROM.get(addr, device_name);
+  strcpy(device_settings.DeviceName, device_name);
+  addr += sizeof(device_settings.DeviceName);
+  */
 }
 #endif
 
