@@ -833,7 +833,7 @@ void formatSDCard(int id=0) {
   screen.setTextArea(2, 0.27, 0.2, 0.73, 0.3);
   screen.writeText(2, "in progress ...");
   screen.setBacklightOn();
-  sdcard.format("fishfinder.cfg");
+  sdcard.format("fishfinder.cfg", true);
 }
 #endif
 
