@@ -4,20 +4,16 @@
 // git clone git@github.com:KurtE/MTP_Teensy.git
 // Requires Teensyduino >=1.57, set USB Type to "Serial + MTP Disk"
 
-#include <SDWriter.h>
+#include <SD.h>
 #include <MTP_Teensy.h>
 
-SDCard sdcard;
-
-
-// ---------------------------------------------------------------------------
 
 void setup() {
   Serial.begin(9600);
   while (!Serial && millis() < 200) {};
-  sdcard.begin();
+  SD.begin(BUILTIN_SDCARD);
   MTP.begin();
-  MTP.addFilesystem(sdcard, "Fishfinder");
+  MTP.addFilesystem(SD, "Fishfinder");
 }
 
 
