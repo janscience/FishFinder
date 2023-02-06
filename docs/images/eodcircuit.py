@@ -64,7 +64,7 @@ def plot_efish(ax, s):
     ax.set_ylim(miny, maxy)
 
     
-def plot_fishfinder(ax, s, pos, direction, length):
+def plot_fishfinder(ax, s, pos, direction, length, central_ground=False):
     width = 6
     transform = mpt.Affine2D().rotate(np.arctan2(direction[1], direction[0])).translate(*pos) + ax.transData
     ax.plot([0, length], [0, 0], color=s.palette['gray'], lw=width,
@@ -77,6 +77,10 @@ def plot_fishfinder(ax, s, pos, direction, length):
     #        solid_capstyle='butt', transform=transform, zorder=51)
     #ax.plot([2, 0], [-0.2, -0.2], color=s.palette['blue'], lw=s.lwthin,
     #        solid_capstyle='butt', transform=transform, zorder=51)
+    if central_ground:
+        ax.plot([length/2-0.5, length/2+0.5], [0, 0], color=s.palette['black'],
+                lw=1.3*width, solid_capstyle='butt', transform=transform,
+                zorder=52)
 
     
 def plot_eodcircuit(ax):
@@ -89,12 +93,12 @@ def plot_eodcircuit(ax):
     return eod1, eod2
 
     
-def plot_fishfinder_circuit(ax, s, eod1, eod2):
+def plot_fishfinder_circuit(ax, s, eod1, eod2, central_ground=False):
     rm1, rm2 = ax.resistance_h(eod1.rights(5.5), r'$R_{m1}$')
     rm3, rm4 = ax.resistance_h(eod2.rights(5.5), r'$R_{m2}$')
     n1 = ax.node(rm2.rights(2))
     n2 = ax.node(rm4.rights(2))
-    oppos = n1.rights(3).ups(2)
+    oppos = n1.rights(3).ups(2.07)
     opn, opp, opout, opgnd = ax.opamp_l(oppos)
     ax.connect((eod2, rm3, None, rm4, n2, opp, None, opout, opout.rights(0.5)))
     ax.connect((opn, n1, rm2, None, rm1, eod1))
@@ -103,7 +107,7 @@ def plot_fishfinder_circuit(ax, s, eod1, eod2):
     ax.connect((opgnd, gnd))
     b1, b2 = ax.battery_v(ngnd.rights(1).ups(1))
     ax.connect((ngnd, b1))
-    plot_fishfinder(ax, s, n1.downs(0.5), (0, 1), 15.4)
+    plot_fishfinder(ax, s, n1.downs(0.5), (0, 1), 15.4, central_ground)
     ax.text(n1.lefts(0.8).x(), opout.y(), 'electrodes',
             rotation='vertical', va='center')
     ax.add_patch(Rectangle(opp.lefts(1).ups(0.7), 10.5, -22.3,
@@ -111,7 +115,7 @@ def plot_fishfinder_circuit(ax, s, eod1, eod2):
                            facecolor=s.palette['gray']))
     ax.text(b2.x(), b2.ups(0.5).y(), 'recorder',
             rotation='vertical', zorder=60)
-    return ngnd, opn
+    return ngnd, opn, oppos
 
     
 def plot_farground(ax, eod1, eod2, ngnd):
@@ -132,6 +136,12 @@ def plot_singleended(ax, opn, ngnd):
     ax.connect((n1, ngnd))
 
     
+def plot_centralground(ax, oppos, ngnd):
+    n1 = oppos.lefts(3)
+    n2 = ngnd.lefts(1)
+    ax.connect((ngnd, n2, n1))
+
+    
 if __name__ == "__main__":
     s = plot_style()
 
@@ -142,7 +152,7 @@ if __name__ == "__main__":
     t = ax.text(0.03, 0.03, 'Dipole field of electric fish',
                 transform=ax.transAxes)
     fig.savefig()
-    ngnd, opn = plot_fishfinder_circuit(ax, s, eod1, eod2)
+    ngnd, opn, oppos = plot_fishfinder_circuit(ax, s, eod1, eod2)
     t.set_text('Floating differential')
     fig.savefig('eodcircuit-fishfinder')
 
@@ -156,9 +166,20 @@ if __name__ == "__main__":
     fig.subplots_adjust(nomargins=True)
     plot_efish(ax, s)
     eod1, eod2 = plot_eodcircuit(ax)
-    ngnd, opn = plot_fishfinder_circuit(ax, s, eod1, eod2)
+    ngnd, opn, oppos = plot_fishfinder_circuit(ax, s, eod1, eod2)
     plot_singleended(ax, opn, ngnd)
     ax.text(0.03, 0.03, 'Single ended',
             transform=ax.transAxes)
     fig.savefig('eodcircuit-se')
+
+    # central ground (Hopkins - style):
+    fig, ax = plt.subplots(cmsize=(8.0, 5.5))
+    fig.subplots_adjust(nomargins=True)
+    plot_efish(ax, s)
+    eod1, eod2 = plot_eodcircuit(ax)
+    ngnd, opn, oppos = plot_fishfinder_circuit(ax, s, eod1, eod2, True)
+    plot_centralground(ax, oppos, ngnd)
+    ax.text(0.03, 0.03, 'Central ground electrode',
+            transform=ax.transAxes)
+    fig.savefig('eodcircuit-centralground')
     

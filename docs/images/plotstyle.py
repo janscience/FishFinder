@@ -97,25 +97,37 @@ def plot_style():
                        facecolor=palette['white'], alpha=0.5,
                        zorder=100)
     pt.colors_params(ns.palette, cycle_colors, cmap='RdYlBu')
-    pt.figure_params(color='none', format='pdf',
-                  compression=6, fonttype=3, stripfonts=False)
+    pt.figure_params(color='none', format='png', dpi=300,
+                     compression=6, fonttype=3, stripfonts=False)
     pt.grid_params(grid=False, axis='both', which='major', **ns.lsGrid)
-    pt.labels_params(labelformat='{label} [{unit}]', labelsize='small', labelweight='normal',
-                  labelcolor='axes', labelpad=4,
-                  xlabellocation='center', ylabellocation='center')
+    pt.labels_params(labelformat='{label} [{unit}]',
+                     labelsize='small', labelweight='normal',
+                     labelcolor='axes', labelpad=4,
+                     xlabellocation='center', ylabellocation='center')
     pt.legend_params(fontsize='small', frameon=False, borderpad=0,
-                  handlelength=1.5, handletextpad=0.5,
-                  numpoints=1, scatterpoints=1, labelspacing=0.5, columnspacing=0.5)
-    pt.scalebars_params(format_large='%.0f', format_small='%.1f', lw=2.0, color=palette['black'],
-                    capsize=0, clw=0.5, font=dict(fontsize='small', fontstyle='normal'))
-    pt.spines_params(spines='lb', spines_offsets={'lrtb': 3}, spines_bounds={'lrtb': 'full'},
-                  color=ns.lsSpine['color'], linewidth=ns.lsSpine['linewidth'])
-    pt.tag_params(xoffs='auto', yoffs='auto', label='%A', minor_label='%A$_{\text{%mi}}$',
-               font=dict(fontsize='x-large', fontstyle='normal', fontweight='normal'))
-    pt.text_params(font_size=8, font_family='sans-serif', color='axes')
-    pt.ticks_params(xtick_minor=False, xtick_dir='out', xtick_size=3.5, minor_tick_frac=0.6,
-                 xtick_major_width=None, xtick_minor_width=None, xtick_major_pad=None,
-                 xtick_alignment='center', ytick_alignment='center_baseline',
-                 xtick_color='axes', xtick_labelcolor='ticks', xtick_labelsize='medium')
+                     handlelength=1.5, handletextpad=0.5, numpoints=1,
+                     scatterpoints=1, labelspacing=0.5,
+                     columnspacing=0.5)
+    pt.scalebars_params(format_large='%.0f', format_small='%.1f',
+                        lw=2.0, color=palette['black'], capsize=0,
+                        clw=0.5, font=dict(fontsize='small',
+                                           fontstyle='normal'))
+    pt.spines_params(spines='lb', spines_offsets={'lrtb': 3},
+                     spines_bounds={'lrtb': 'full'},
+                     color=ns.lsSpine['color'],
+                     linewidth=ns.lsSpine['linewidth'])
+    pt.tag_params(xoffs='auto', yoffs='auto', label='%A',
+                  minor_label='%A$_{\text{%mi}}$',
+                  font=dict(fontsize='x-large', fontstyle='normal',
+                            fontweight='normal'))
+    pt.text_params(font_size=8, font_family='sans-serif',
+                   color='axes')
+    pt.ticks_params(xtick_minor=False, xtick_dir='out',
+                    xtick_size=3.5, minor_tick_frac=0.6,
+                    xtick_major_width=None, xtick_minor_width=None,
+                    xtick_major_pad=None, xtick_alignment='center',
+                    ytick_alignment='center_baseline',
+                    xtick_color='axes', xtick_labelcolor='ticks',
+                    xtick_labelsize='medium')
     return ns
 
