@@ -112,7 +112,7 @@ def plot_style():
                   color=ns.lsSpine['color'], linewidth=ns.lsSpine['linewidth'])
     pt.tag_params(xoffs='auto', yoffs='auto', label='%A', minor_label='%A$_{\text{%mi}}$',
                font=dict(fontsize='x-large', fontstyle='normal', fontweight='normal'))
-    pt.text_params(font_size=9.0, font_family='sans-serif', color='axes')
+    pt.text_params(font_size=8, font_family='sans-serif', color='axes')
     pt.ticks_params(xtick_minor=False, xtick_dir='out', xtick_size=3.5, minor_tick_frac=0.6,
                  xtick_major_width=None, xtick_minor_width=None, xtick_major_pad=None,
                  xtick_alignment='center', ytick_alignment='center_baseline',

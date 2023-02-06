@@ -143,7 +143,7 @@ if __name__ == "__main__":
                 transform=ax.transAxes)
     fig.savefig()
     ngnd, opn = plot_fishfinder_circuit(ax, s, eod1, eod2)
-    t.set_text('Measurement with fishfinder')
+    t.set_text('Floating differential')
     fig.savefig('eodcircuit-fishfinder')
 
     # far ground:
