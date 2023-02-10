@@ -2,6 +2,7 @@ import matplotlib as mpl
 import plottools.plottools as pt
 from plottools.colors import lighter
 from plottools.spines import spines_params
+from plottools.circuits import Pos
 
     
 def plot_style():
