@@ -49,15 +49,14 @@ It depends on how you use the three electrodes:
 
 - Use the middle one as ground and do a differential recording between
   the front and back electrodes. This results in similar, but probably
-  better characteristics as the single-channel recording of the dipole
+  better characteristics as the single-ended recording of the dipole
   fishfinder.
 
 - The middle electrode is the reference against which the front and
   the back electrode are measured. Results in two channels each with a
   dipolar characteristics:
 
-  - Just sum the two signals up. This most-likely happens if you plug
-    this into a mono-amplifier. This is really bad during the search
+  - Just sum the two signals up. This is really bad during the search
     phase, because the signals on both channels differ in sign and
     almost cancel each other out. During recording phase, the sum of
     both channels result in the same signal as from the single-channel
@@ -65,11 +64,21 @@ It depends on how you use the three electrodes:
     canceled out, because it is picked up with opposite signs by the
     two channels.
   - Subtract them. Same search properties as dipole fishfinder. Really
-    bad for recording. Therefore, this configuration is not an option.
+    bad for recording because signal amplitude gets really
+    low. Therefore, this configuration is not an option.
   - Record them both as two channels. Similar as the two-channel
     dipole fishfinder, but can not differentiate between search phase
     and head-tail configuration.
 
+If you use a stereo jack for this three-electrode fishfinder, then the
+center electrode should be connected to the sleeve (ground, bottom
+end), the tip electrode to the tip (left, hot) and the back electrode
+to the ring (right, cold). If this is plugged into a mono amplifier
+(guitar amplifier), then the ring is short-circuited with ground. You
+are left with a fishfinder that measures the tip electrode versus the
+central ground electrode. The back electrode is useless und the
+effective length of the fishfinder is halfed, resulting in signals of
+much less amplitude.
 
 ## Comparison
 
