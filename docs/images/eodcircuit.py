@@ -90,14 +90,14 @@ def plot_fishfinder_circuit(ax, s, eod1, eod2, rv, central_ground=False):
     ax.connect((opgnd, gnd))
     b1, b2 = ax.battery_v(ngnd.rights(1).ups(1))
     ax.connect((ngnd, b1))
-    plot_fishfinder(ax, rv.left(5), (0, 1), 17, central_ground, 
+    plot_fishfinder(ax, rv.left(5), (0, 1), 15, central_ground=central_ground,
                     rodkwargs=dict(edgecolor='none', facecolor=s.palette['gray']),
                     poskwargs=dict(edgecolor='none', facecolor=s.palette['red']),
                     negkwargs=dict(edgecolor='none', facecolor=s.palette['blue']),
                     gndkwargs=dict(edgecolor='none', facecolor=s.palette['black']))
     ax.text(eod1.lefts(0.8).x(), opout.y(), 'electrodes',
             rotation='vertical', va='center')
-    ax.add_patch(Rectangle(opp.lefts(1.2).ups(0.7), 11, -19.5,
+    ax.add_patch(plt.Rectangle(opp.lefts(1.2).ups(0.7), 11, -19.5,
                            zorder=50, edgecolor=s.palette['black'],
                            facecolor=s.palette['gray']))
     ax.text(b2.x(), b2.ups(0.5).y(), 'recorder',
