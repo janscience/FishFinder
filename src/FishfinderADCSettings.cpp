@@ -1,8 +1,8 @@
 #include <FishfinderADCSettings.h>
 
 
-FishfinderADCSettings::FishfinderADCSettings(const char *name, uint32_t rate,
-					     uint8_t bits, uint8_t averaging,
+FishfinderADCSettings::FishfinderADCSettings(const char *name, int8_t channel1, int8_t channel2,
+					     uint32_t rate, uint8_t bits, uint8_t averaging,
 					     ADC_CONVERSION_SPEED conversion_speed,
 					     ADC_SAMPLING_SPEED sampling_speed,
 					     ADC_REFERENCE reference,
@@ -10,8 +10,20 @@ FishfinderADCSettings::FishfinderADCSettings(const char *name, uint32_t rate,
 					     float analysis_window) :
   TeensyADCSettings(name, rate, bits, averaging, conversion_speed,
 		    sampling_speed, reference),
+  Channel1(channel1),
+  Channel2(channel2),
   AnalysisInterval(analysis_interval),
   AnalysisWindow(analysis_window) {
+}
+
+
+void FishfinderADCSettings::setChannel1(int8_t channel1) {
+  Channel1 = channel1;
+}
+
+
+void FishfinderADCSettings::setChannel2(int8_t channel2) {
+  Channel2 = channel2;
 }
 
 
@@ -27,7 +39,9 @@ void FishfinderADCSettings::setAnalysisWindow(float analysis_window) {
 
 void FishfinderADCSettings::configure(const char *key, const char *val) {
   char pval[30];
-  if (strcmp(key, "analysisinterval") == 0) {
+  if (strcmp(key, "channel1") == 0) {
+  }
+  else if (strcmp(key, "analysisinterval") == 0) {
     setAnalysisInterval(parseTime(val));
     sprintf(pval, "%.0fms", 1000.0*AnalysisInterval);
   }
@@ -45,6 +59,8 @@ void FishfinderADCSettings::configure(const char *key, const char *val) {
 
 void FishfinderADCSettings::report() const {
   TeensyADCSettings::report();
+  Serial.printf("  channel1:   %d\n", Channel1);
+  Serial.printf("  channel2:   %d\n", Channel2);
   Serial.printf("  interval:   %.0fms\n", 1000.0*AnalysisInterval);
   Serial.printf("  window:     %.0fms\n", 1000.0*AnalysisWindow);
 }

@@ -70,40 +70,31 @@
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
 
-#define BITS             12 // resolution: 10bit 12bit, or 16bit
+#define CHANNEL1    A10 // input pin for channel 1
+#define CHANNEL2    A2  // input pin for channel 2
+
+#define BITS          12 // resolution: 10bit 12bit, or 16bit
 #define REFERENCE     ADC_REFERENCE::REF_3V3
 
-// ADC 1-channel @ 22kHz:
-#define ADC1CH22KHZ_SAMPLING_RATE 22050 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
-#define ADC1CH22KHZ_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
-#define ADC1CH22KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
-#define ADC1CH22KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
-#define ADC1CH22KHZ_ANALYSIS_INTERVAL  0.2 // seconds
-#define ADC1CH22KHZ_ANALYSIS_WINDOW  0.2 // seconds
+// ADC channel1 @ 44kHz:
+#define ADCCH144KHZ_CHANNEL1 CHANNEL1   // pin of channel 1
+#define ADCCH144KHZ_CHANNEL2 -1         // do not use channel 2
+#define ADCCH144KHZ_SAMPLING_RATE 44100 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
+#define ADCCH144KHZ_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
+#define ADCCH144KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
+#define ADCCH144KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
+#define ADCCH144KHZ_ANALYSIS_INTERVAL  0.2 // seconds
+#define ADCCH144KHZ_ANALYSIS_WINDOW  0.2 // seconds
 
-// ADC 1-channel @ 44kHz:
-#define ADC1CH44KHZ_SAMPLING_RATE 44100 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
-#define ADC1CH44KHZ_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
-#define ADC1CH44KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
-#define ADC1CH44KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
-#define ADC1CH44KHZ_ANALYSIS_INTERVAL  0.2 // seconds
-#define ADC1CH44KHZ_ANALYSIS_WINDOW  0.2 // seconds
-
-// ADC 1-channel @ 96kHz:
-#define ADC1CH96KHZ_SAMPLING_RATE 96000 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
-#define ADC1CH96KHZ_AVERAGING         1 // number of averages per sample: 0, 4, 8, 16, 32
-#define ADC1CH96KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
-#define ADC1CH96KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
-#define ADC1CH96KHZ_ANALYSIS_INTERVAL  0.2 // seconds
-#define ADC1CH96KHZ_ANALYSIS_WINDOW  0.2 // seconds
-
-// ADC 1-channel @ 192kHz:
-#define ADC1CH192KHZ_SAMPLING_RATE 192000 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
-#define ADC1CH192KHZ_AVERAGING         1 // number of averages per sample: 0, 4, 8, 16, 32
-#define ADC1CH192KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
-#define ADC1CH192KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
-#define ADC1CH192KHZ_ANALYSIS_INTERVAL  0.0 // seconds
-#define ADC1CH192KHZ_ANALYSIS_WINDOW  0.0 // seconds
+// ADC channel2 @ 44kHz:
+#define ADCCH244KHZ_CHANNEL1 -1         // do not use channel 1
+#define ADCCH244KHZ_CHANNEL2 CHANNEL2   // pin of channel 2
+#define ADCCH244KHZ_SAMPLING_RATE 44100 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz, 96kHz, or 192kHz
+#define ADCCH244KHZ_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
+#define ADCCH244KHZ_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
+#define ADCCH244KHZ_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
+#define ADCCH244KHZ_ANALYSIS_INTERVAL  0.2 // seconds
+#define ADCCH244KHZ_ANALYSIS_WINDOW  0.2 // seconds
 
 #define VOICE_SAMPLING_RATE 22050 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz 96kHz, or 192kHz
 #define VOICE_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
@@ -134,10 +125,6 @@
 #endif
 
 // Pin assignment: ------------------------------------------------------------
-
-#define CHANNEL_FRONT    A10 // input pin for front electrode
-//#define CHANNEL_FRONT    A2 // input pin for front electrode
-//#define CHANNEL_BACK     A2  // input pin for back electrode
 
 #define CHANNEL_VOICE    A0  // input pin for voice message
 
@@ -201,42 +188,30 @@ RTClock rtclock;
 
 Configurator config;
 DeviceSettings device_settings(DEVICE_NAME);
-FishfinderADCSettings ai1ch22khz_settings("1-Channel @ 22.05kHz",
-					  ADC1CH22KHZ_SAMPLING_RATE,
-					  BITS, ADC1CH22KHZ_AVERAGING,
-					  ADC1CH22KHZ_CONVERSION,
-					  ADC1CH22KHZ_SAMPLING, REFERENCE,
-					  ADC1CH22KHZ_ANALYSIS_INTERVAL,
-					  ADC1CH22KHZ_ANALYSIS_WINDOW);
-FishfinderADCSettings ai1ch44khz_settings("1-Channel @ 44.1kHz",
-					  ADC1CH44KHZ_SAMPLING_RATE,
-					  BITS, ADC1CH44KHZ_AVERAGING,
-					  ADC1CH44KHZ_CONVERSION,
-					  ADC1CH44KHZ_SAMPLING, REFERENCE,
-					  ADC1CH44KHZ_ANALYSIS_INTERVAL,
-					  ADC1CH44KHZ_ANALYSIS_WINDOW);
-FishfinderADCSettings ai1ch96khz_settings("1-Channel @ 96kHz",
-					  ADC1CH96KHZ_SAMPLING_RATE,
-					  BITS, ADC1CH96KHZ_AVERAGING,
-					  ADC1CH96KHZ_CONVERSION,
-					  ADC1CH96KHZ_SAMPLING, REFERENCE,
-					  ADC1CH96KHZ_ANALYSIS_INTERVAL,
-					  ADC1CH96KHZ_ANALYSIS_WINDOW);
-FishfinderADCSettings ai1ch192khz_settings("1-Channel @ 192kHz",
-					   ADC1CH192KHZ_SAMPLING_RATE,
-					   BITS, ADC1CH192KHZ_AVERAGING,
-					   ADC1CH192KHZ_CONVERSION,
-					   ADC1CH192KHZ_SAMPLING, REFERENCE,
-					   ADC1CH192KHZ_ANALYSIS_INTERVAL,
-					   ADC1CH192KHZ_ANALYSIS_WINDOW);
-#define MAX_SETTINGS 4
-FishfinderADCSettings *ai_settings[MAX_SETTINGS] = { &ai1ch22khz_settings,
-						     &ai1ch44khz_settings,
-						     &ai1ch96khz_settings,
-						     &ai1ch192khz_settings};
-FishfinderSettings settings(PATH, FILENAME, 1);
+FishfinderADCSettings aich1_44khz_settings("Channel1 @ 44.1kHz",
+			  		   ADCCH144KHZ_CHANNEL1,
+					   ADCCH144KHZ_CHANNEL2,
+					   ADCCH144KHZ_SAMPLING_RATE,
+					   BITS, ADCCH144KHZ_AVERAGING,
+					   ADCCH144KHZ_CONVERSION,
+					   ADCCH144KHZ_SAMPLING, REFERENCE,
+					   ADCCH144KHZ_ANALYSIS_INTERVAL,
+					   ADCCH144KHZ_ANALYSIS_WINDOW);
+FishfinderADCSettings aich2_44khz_settings("Channel2 @ 44.1kHz",
+					   ADCCH244KHZ_CHANNEL1,
+					   ADCCH244KHZ_CHANNEL2,
+					   ADCCH244KHZ_SAMPLING_RATE,
+					   BITS, ADCCH244KHZ_AVERAGING,
+					   ADCCH244KHZ_CONVERSION,
+					   ADCCH244KHZ_SAMPLING, REFERENCE,
+					   ADCCH244KHZ_ANALYSIS_INTERVAL,
+					   ADCCH244KHZ_ANALYSIS_WINDOW);
+#define MAX_SETTINGS 2
+FishfinderADCSettings *ai_settings[MAX_SETTINGS] = { &aich1_44khz_settings,
+						     &aich2_44khz_settings };
+FishfinderSettings settings(PATH, FILENAME, 0);
 #ifdef LOGGER
-LoggerSettings logger_settings(LOGGER_PATH, LOGGER_FILENAME, 1,
+LoggerSettings logger_settings(LOGGER_PATH, LOGGER_FILENAME, 0,
 			       LOGGER_FILESAVETIME, LOGGER_INITIALDELAY);
 #endif
 TeensyADCSettings voice_settings("Voice ADC", VOICE_SAMPLING_RATE, BITS,
@@ -286,8 +261,10 @@ char clippingids[2][2] = {"", "C"};
 
 void setupDataADC(int i) {
   aidata.clearChannels();
-  aidata.setChannel(0, CHANNEL_FRONT);
-  //aidata.setChannel(1, CHANNEL_BACK);
+  if (ai_settings[i]->channel1() >= 0)
+    aidata.setChannel(0, ai_settings[i]->channel1());
+  if (ai_settings[i]->channel2() >= 0)
+    aidata.setChannel(1, ai_settings[i]->channel2());
   aidata.configure(*ai_settings[i]);
   aidata.check();
 }
