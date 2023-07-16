@@ -82,7 +82,7 @@ def plot_eodcircuit(ax):
     
 def plot_fishfinder_circuit(ax, s, eod1, eod2, rv, central_ground=False):
     oppos = rv.right(12)
-    opn, opp, opout, opgnd = ax.opamp_l(oppos)
+    opn, opp, opout, opgnd, oppwr = ax.opamp_l(oppos)
     ax.connect((eod2, opp, None, opout, opout.rights(0.5)))
     ax.connect((opn, eod1))
     ngnd = ax.node(oppos.downs(4))
