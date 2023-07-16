@@ -22,9 +22,9 @@ public:
   
   virtual void configure(const char *key, const char *val);
 
-  static const size_t MaxStr = 100;
-  char Path[MaxStr];
-  char FileName[MaxStr];
+  static const size_t MaxStr = 99;
+  char Path[MaxStr + 1];
+  char FileName[MaxStr + 1];
   int Mode;
 };
 

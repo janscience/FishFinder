@@ -11,13 +11,13 @@ FishfinderSettings::FishfinderSettings(const char *path, const char *filename,
 
 
 int FishfinderSettings::modeEnum(const char *mode) {
-  if (strcmp(mode, "1ch22khz") == 0)
+  if (strcmp(mode, "44khz") == 0)
     return 0;
-  else if (strcmp(mode, "1ch44khz") == 0)
+  else if (strcmp(mode, "48khz") == 0)
     return 1;
-  else if (strcmp(mode, "1ch96khz") == 0)
+  else if (strcmp(mode, "96khz") == 0)
     return 2;
-  else if (strcmp(mode, "1ch192khz") == 0)
+  else if (strcmp(mode, "192khz") == 0)
     return 3;
   else
     return -1;
