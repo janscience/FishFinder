@@ -65,7 +65,7 @@
 
 #define DEBUG
 
-#define SOFTWARE "FishFinder V1.2"
+#define SOFTWARE "FishFinder V1.3"
 
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
@@ -205,7 +205,7 @@ float gains[max_gain+1] = {400.0, 80.0};
 Configurator config;
 DeviceSettings device_settings(DEVICE_NAME);
 FishfinderADCSettings ai_44khz_settings("44.1kHz",
-			  		CHANNEL1, -1,
+			  	CHANNEL1, -1,
 					ADC44KHZ_SAMPLING_RATE,
 					BITS, ADC44KHZ_AVERAGING,
 					ADC44KHZ_CONVERSION,
@@ -297,6 +297,9 @@ void setupDataADC(int i) {
   aidata.setChannel(1, ai_settings[i]->channel2());
   aidata.configure(*ai_settings[i]);
   aidata.check();
+  char cs[50];
+  aidata.channels(cs);
+  Serial.println(cs);
 }
 
 
@@ -599,25 +602,23 @@ void toggleVoiceMessage(int id) {
 
 
 void setGain() {
-  //analysis.stop();
-  //audio.pause();
+  audio.pause();
   aidata.stop();
-  int mode = settings.Mode;
-  if (gain == 1) {
-    ai_settings[mode]->setChannel1(-1);
-    ai_settings[mode]->setChannel2(CHANNEL2);
+  Serial.printf("GAIN %d\n", gain);
+  for (int mode=0; mode<MAX_SETTINGS; mode++) {
+    if (gain == 1) {
+      ai_settings[mode]->setChannel1(-1);
+      ai_settings[mode]->setChannel2(CHANNEL2);
+    }
+    else {
+      ai_settings[mode]->setChannel1(CHANNEL1);
+      ai_settings[mode]->setChannel2(-1);
+    }
   }
-  else {
-    ai_settings[mode]->setChannel1(CHANNEL1);
-    ai_settings[mode]->setChannel2(-1);
-  }
-  aidata.setChannel(0, ai_settings[mode]->channel1());
-  aidata.setChannel(1, ai_settings[mode]->channel2());
+  setupDataADC(settings.Mode);
   aidata.start();
   aidata.report();
-  //audio.play();
-  //analysis.start(ai_settings[settings.Mode]->analysisInterval(),
-  //		 ai_settings[settings.Mode]->analysisWindow());
+  audio.play();
 }
 
 
@@ -626,9 +627,8 @@ void switchUp(int id) {
     return;
   switch (updownids[updownstate][0]) {
   case 'G':
-    if (!datafile.isOpen()) {
-      if (gain < max_gain)
-        gain++;
+    if (!datafile.isOpen() && gain < max_gain) {
+      gain++;
       setGain();
     }
     break;
@@ -649,9 +649,8 @@ void switchDown(int id) {
     return;
   switch (updownids[updownstate][0]) {
   case 'G':
-    if (!datafile.isOpen()) {
-      if (gain > 0)
-        gain--;
+    if (!datafile.isOpen() && gain > 0) {
+      gain--;
       setGain();
     }
     break;
@@ -819,7 +818,7 @@ void setupAudio() {
   audio.setupAmp(AMPL_ENABLE_PIN);
   audio.setupVolume(0.1);
   audio.setLowpass(2);
-  audio.addFeedback(0.3, 6*440.0, 0.17);
+  audio.addFeedback(0.3, 6*440.0, 0.1);
 #ifdef COMPUTE_CORRELATIONS
   audio.addFeedback(0.2, 2*440.0, 0.2);
 #endif
@@ -1017,6 +1016,7 @@ void resetSettings(int id) {
   screen.clear();
 }
 
+
 void saveSettings(int id) {
   int addr = 0;
   int mode = 0;
@@ -1159,7 +1159,7 @@ void setup() {
     while (1) {
 #ifdef MTP_RESPONDER
       if (usb_configuration)
-	runMTPResponder();
+	      runMTPResponder();
 #endif
       menu.exec();
     }
