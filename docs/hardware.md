@@ -34,32 +34,44 @@
 
 ### Amplifier
 
-A2, A10
+[Teensy_Amp R3.0](https://github.com/janscience/Teensy_Amp/tree/main/R3.0)
+
+- A2
+- A10
+
 
 ### Display
 
-On SPI1:
+[Adafruit 2.0" 320x240 Color IPS TFT Display](https://www.adafruit.com/product/4311) on SPI1:
 
 - MOSI1: 0
-- D/C: 10
+- D/C: 15
 - RST: 1
 - SCK1: 32
 - CS1: 31
 - BL: 30
-
 - GND
 - 3.3V
 
 ### Audio amplifier:
 
+[Adafruit MAX98357 I2S Class-D Mono Amp](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp)
+
 - LRC: 23
 - BCLK: 9
 - DIN: 22
-- GAIN: GND
-- SD: 7
+- GAIN: GND (12dB gain)
+- SD: 8
+- GND
+- 3.3V
+
+### Microphone
+
+[SparkFun Analog MEMS Microphone](https://www.sparkfun.com/products/18011)
 
 - GND
 - 3.3V
+- A0
 
 ### Switches
 
@@ -74,6 +86,8 @@ On SPI1:
 - VBAT
 
 ### LiPo Charger
+
+[Adafruit LiIon/LiPoly Backpack](https://www.adafruit.com/product/2124)
 
 - VUSB
 - Vin

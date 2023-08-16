@@ -140,7 +140,7 @@
 
 #define CHANNEL_VOICE    A0  // input pin for voice message
 
-#define AMPL_ENABLE_PIN   7  // pin for enabling an audio amplifier
+#define AMPL_ENABLE_PIN   8  // pin for enabling an audio amplifier
 #define DOWN_PIN         26  // pin for push button for decreasing audio volume/zoom
 #define UP_PIN           27  // pin for push button for increasing audio volume/zoom
 #define RECORD_PIN       28  // pin for push button starting and stopping a recording
