@@ -1,3 +1,4 @@
+#include <InputADC.h>
 #include <FishfinderADCSettings.h>
 
 
@@ -8,8 +9,8 @@ FishfinderADCSettings::FishfinderADCSettings(const char *name, int8_t channel1, 
 					     ADC_REFERENCE reference,
 					     float analysis_interval,
 					     float analysis_window) :
-  TeensyADCSettings(name, rate, bits, averaging, conversion_speed,
-		    sampling_speed, reference),
+  InputADCSettings(name, rate, bits, averaging, conversion_speed,
+		   sampling_speed, reference),
   Channel1(channel1),
   Channel2(channel2),
   AnalysisInterval(analysis_interval),
@@ -50,15 +51,25 @@ void FishfinderADCSettings::configure(const char *key, const char *val) {
     sprintf(pval, "%.0fms", 1000.0*AnalysisWindow);
   }
   else {
-    TeensyADCSettings::configure(key, val);
+    InputADCSettings::configure(key, val);
     return;
   }
   Serial.printf("  set %s-%s to %s\n", name(), key, pval);
 }
 
 
+void FishfinderADCSettings::configure(InputADC *adc) {
+  InputADCSettings::configure(adc);
+  if (adc == 0)
+    adc = ADC;
+  if (adc == 0)
+    return;
+  adc->setChannel(0, channel1());
+}
+
+
 void FishfinderADCSettings::report() const {
-  TeensyADCSettings::report();
+  InputADCSettings::report();
   Serial.printf("  channel1:   %d\n", Channel1);
   Serial.printf("  channel2:   %d\n", Channel2);
   Serial.printf("  interval:   %.0fms\n", 1000.0*AnalysisInterval);

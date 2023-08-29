@@ -9,10 +9,10 @@
 
 
 #include <Arduino.h>
-#include <TeensyADCSettings.h>
+#include <InputADCSettings.h>
 
 
-class FishfinderADCSettings : public TeensyADCSettings {
+class FishfinderADCSettings : public InputADCSettings {
 
 public:
   // Constructor setting configuration name.
@@ -49,6 +49,10 @@ public:
   
   // Configure fishfinder ADC settings with the provided key-value pair.
   virtual void configure(const char *key, const char *val);
+
+  // Apply ADC settings on adc.
+  // If no adc is provided, the one provided to the constructor is used.
+  void configure(InputADC *adc=0);
 
   // Report current settings on Serial.
   void report() const;
