@@ -1,3 +1,4 @@
+#include <InputADC.h>
 #include <FishfinderADCSettings.h>
 
 
@@ -80,7 +81,12 @@ void FishfinderADCSettings::configure(InputADC *adc) {
 
 
 void FishfinderADCSettings::setConfiguration(InputADC *adc) {
-  return InputADCSettings::setConfiguration(adc);
+  InputADCSettings::configure(adc);
+  if (adc == 0)
+    adc = ADC;
+  if (adc == 0)
+    return;
+  adc->setChannel(0, channel1());
 }
 
 
