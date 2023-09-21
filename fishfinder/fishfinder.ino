@@ -25,7 +25,7 @@
 
 //#define COMPUTE_CORRELATIONS    // TODO: not fully implemented yet
 
-#include <TeensyADC.h>
+#include <InputADC.h>
 #include <AudioMonitor.h>
 #include <SDWriter.h>
 #ifdef MTP_RESPONDER
@@ -53,7 +53,7 @@
 #include <Menu.h>
 #include <Configurator.h>
 #include <DeviceSettings.h>
-#include <TeensyADCSettings.h>
+#include <InputADCSettings.h>
 #include <FishfinderADCSettings.h>
 #include <FishfinderSettings.h>
 #ifdef LOGGER
@@ -178,7 +178,7 @@
 // ----------------------------------------------------------------------------
 
 DATA_BUFFER(AIBuffer, NAIBuffer, DATA_BUFFER_SIZE);
-TeensyADC aidata(AIBuffer, NAIBuffer);
+InputADC aidata(AIBuffer, NAIBuffer);
 
 AudioOutputI2S speaker;
 AudioMonitor audio(aidata, speaker);
@@ -246,7 +246,7 @@ FishfinderSettings settings(PATH, FILENAME, 0);
 LoggerSettings logger_settings(LOGGER_PATH, LOGGER_FILENAME, 0,
 			       LOGGER_FILESAVETIME, LOGGER_INITIALDELAY);
 #endif
-TeensyADCSettings voice_settings("Voice ADC", VOICE_SAMPLING_RATE, BITS,
+InputADCSettings voice_settings("Voice ADC", VOICE_SAMPLING_RATE, BITS,
 				 VOICE_AVERAGING, VOICE_CONVERSION,
 				 VOICE_SAMPLING, REFERENCE);
 
@@ -295,7 +295,7 @@ void setupDataADC(int i) {
   aidata.clearChannels();
   aidata.setChannel(0, ai_settings[i]->channel1());
   aidata.setChannel(1, ai_settings[i]->channel2());
-  aidata.configure(*ai_settings[i]);
+  ai_settings[i]->configure(&aidata);
   aidata.check();
   char cs[50];
   aidata.channels(cs);
@@ -351,7 +351,7 @@ void showDataADC(int id) {
 void setupVoiceADC() {
   aidata.clearChannels();
   aidata.setChannel(0, CHANNEL_VOICE);
-  aidata.configure(voice_settings);
+  voice_settings.configure(&aidata);
   aidata.check();
 }
 
