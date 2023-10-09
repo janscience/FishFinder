@@ -65,13 +65,13 @@
 
 #define DEBUG
 
-#define SOFTWARE "FishFinder V1.3"
+#define SOFTWARE "FishFinder V1.4"
 
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
 
-#define CHANNEL1    A10 // input pin for channel 1
-#define CHANNEL2    A2  // input pin for channel 2
+#define CHANNEL1    A2 // input pin for channel 1     A2 is low gain on ff1
+#define CHANNEL2    A10  // input pin for channel 2   A10 is high gain on ff1
 
 #define BITS          12 // resolution: 10bit 12bit, or 16bit
 #define REFERENCE     ADC_REFERENCE::REF_3V3
@@ -116,7 +116,7 @@
 #define DEVICE_NAME   "1"             // Name of device for file names.
 
 #define PATH          "fishfinder"    // folder where to store recordings
-#define FILENAME      "ffDEV-SDATENNUM.wav" // may include DEV, DATE, SDATE, TIME, STIME, NUM, ANUM
+#define FILENAME      "ffDEV-SDATENNUM3.wav" // may include DEV, DATE, SDATE, TIME, STIME, NUM, ANUM
 
 #ifdef LOGGER
 #define LOGGER_PATH          "logger" // folder where to store logger recordings
@@ -205,7 +205,7 @@ float gains[max_gain+1] = {400.0, 80.0};
 Configurator config;
 DeviceSettings device_settings(DEVICE_NAME);
 FishfinderADCSettings ai_44khz_settings("44.1kHz",
-			  	CHANNEL1, -1,
+					CHANNEL1, -1,
 					ADC44KHZ_SAMPLING_RATE,
 					BITS, ADC44KHZ_AVERAGING,
 					ADC44KHZ_CONVERSION,
@@ -607,8 +607,8 @@ void setGain() {
   Serial.printf("GAIN %d\n", gain);
   for (int mode=0; mode<MAX_SETTINGS; mode++) {
     if (gain == 1) {
-      ai_settings[mode]->setChannel1(-1);
-      ai_settings[mode]->setChannel2(CHANNEL2);
+      ai_settings[mode]->setChannel1(CHANNEL2);
+      ai_settings[mode]->setChannel2(-1);
     }
     else {
       ai_settings[mode]->setChannel1(CHANNEL1);
