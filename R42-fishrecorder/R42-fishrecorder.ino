@@ -13,16 +13,16 @@
 #define NCHANNELS     2        // number of channels (even, from 2 to 16)
 #define PREGAIN       10.0     // gain factor of preamplifier
 #define SAMPLING_RATE 48000    // samples per second and channel in Hertz
-#define GAIN          20.0     // dB
+#define GAIN          30.0     // dB
 
 #define PATH          "recordings"   // folder where to store the recordings
 #define FILENAME      "rec1-SDATETIME.wav"  // may include DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, ANUM, NUM
-#define FILE_SAVE_TIME 60    // seconds
+#define FILE_SAVE_TIME 5*60    // seconds
 #define INITIAL_DELAY  10.0  // seconds
 
 // ----------------------------------------------------------------------------
 
-#define LED_PIN        LED_BUILTIN   // 26
+#define LED_PIN       27
 
 #define SOFTWARE      "R4.2 FishRecorder v1.0"
 
@@ -39,7 +39,7 @@ Settings settings(PATH, FILENAME, FILE_SAVE_TIME, 0.0,
                   0.0, INITIAL_DELAY);
 InputTDMSettings aisettings(&aidata, SAMPLING_RATE, NCHANNELS, GAIN);                  
 RTClock rtclock;
-Blink blink(LED_PIN);
+Blink blink(LED_PIN, true, LED_BUILTIN, false);
 
 
 int restarts = 0;
@@ -49,7 +49,7 @@ String prevname; // previous file name
 void setupStorage(char *gainstr) {
   prevname = "";
   restarts = 0;
-  blink.setTiming(5000, 60, 1000);
+  blink.setTiming(5000, 60, 1200);
   if (file.sdcard()->dataDir(settings.Path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.Path);
   file.setWriteInterval(2*aidata.DMABufferTime());
@@ -63,7 +63,7 @@ void setupStorage(char *gainstr) {
 
 void openNextFile() {
   blink.setRandom();
-  blink.blinkSingle(0, 2000);
+  blink.blinkMultiple(5, 0, 200, 200);
   time_t t = now();
   String fname = rtclock.makeStr(settings.FileName, t, true);
   if (fname != prevname) {
@@ -191,11 +191,10 @@ bool setupPCM(InputTDM &tdm, ControlPCM186x &pcm) {
     return false;
   }
   pcm.setRate(tdm, aisettings.rate());
-  pcm.setupTDM(tdm, ControlPCM186x::CH2L, ControlPCM186x::CH2R,
+  pcm.setupTDM(tdm, ControlPCM186x::CH2L, ControlPCM186x::CH3R,
                false, ControlPCM186x::INVERTED);
   Serial.println("configured for 2 channels");
   pcm.setSmoothGainChange(false);
-  pcm.setGain(aisettings.gain());
   pcm.setFilters(ControlPCM186x::FIR, false);
   return true;
 }
@@ -217,7 +216,10 @@ void setup() {
   Wire1.begin();
   Serial.printf("Setup PCM186x 1 on TDM 2: ");
   setupPCM(aidata, pcm1);
-  pcm2.powerdown();
+  pcm1.setGain(ControlPCM186x::ADC1R, aisettings.gain());  // signal
+  pcm1.setGain(ControlPCM186x::ADC1L, 0.0);                // LED
+  pcm2.setupTDM(ControlPCM186x::CH2L, ControlPCM186x::CH2R,true);
+  //pcm2.powerdown();  // this corrupts the TDM frames!
   Serial.printf("Setup PCM186x 2 on TDM 2: powered down\n");
   Serial.println();
   aidata.begin();
@@ -232,8 +234,10 @@ void setup() {
   }
   else
     delay(uint32_t(1000.0*settings.InitialDelay));
+  Serial.printf("ADC1R g=%.1fdB\n", pcm1.gain(ControlPCM186x::ADC1R));
+  Serial.printf("ADC1L g=%.1fdB\n", pcm1.gain(ControlPCM186x::ADC1L));
   char gs[16];
-  pcm1.gainStr(gs, PREGAIN);  // XXX only from channel one!
+  pcm1.gainStr(ControlPCM186x::ADC1R, gs, PREGAIN);
   setupStorage(gs);
   openNextFile();
 }
