@@ -206,6 +206,7 @@ void setup() {
   blink.switchOn();
   Serial.begin(9600);
   while (!Serial && millis() < 2000) {};
+  Serial.println("\n=======================================================================\n");
   rtclock.check();
   sdcard.begin();
   rtclock.setFromFile(sdcard);
@@ -216,10 +217,10 @@ void setup() {
   Wire1.begin();
   Serial.printf("Setup PCM186x 1 on TDM 2: ");
   setupPCM(aidata, pcm1);
-  pcm1.setGain(ControlPCM186x::ADC1R, aisettings.gain());  // signal
   pcm1.setGain(ControlPCM186x::ADC1L, 0.0);                // LED
+  pcm1.setGain(ControlPCM186x::ADC1R, aisettings.gain());  // signal
   pcm2.setupTDM(ControlPCM186x::CH2L, ControlPCM186x::CH2R,true);
-  //pcm2.powerdown();  // this corrupts the TDM frames!
+  pcm2.powerdown();
   Serial.printf("Setup PCM186x 2 on TDM 2: powered down\n");
   Serial.println();
   aidata.begin();
