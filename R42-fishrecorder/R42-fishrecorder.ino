@@ -18,7 +18,7 @@
 #define PATH          "recordings"   // folder where to store the recordings
 #define FILENAME      "rec1-SDATETIME.wav"  // may include DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, ANUM, NUM
 #define FILE_SAVE_TIME 5*60    // seconds
-#define INITIAL_DELAY  10.0  // seconds
+#define INITIAL_DELAY  10.0    // seconds
 
 // ----------------------------------------------------------------------------
 
@@ -28,8 +28,8 @@
 
 EXT_DATA_BUFFER(AIBuffer, NAIBuffer, 16*512*256)
 InputTDM aidata(AIBuffer, NAIBuffer);
-ControlPCM186x pcm1(Wire1, PCM186x_I2C_ADDR1, InputTDM::TDM2);
-ControlPCM186x pcm2(Wire1, PCM186x_I2C_ADDR2, InputTDM::TDM2);
+ControlPCM186x pcm1(Wire1, PCM186x_I2C_ADDR2, InputTDM::TDM2);
+ControlPCM186x pcm2(Wire1, PCM186x_I2C_ADDR1, InputTDM::TDM2);
 
 SDCard sdcard;
 SDWriter file(sdcard, aidata);
@@ -49,7 +49,7 @@ String prevname; // previous file name
 void setupStorage(char *gainstr) {
   prevname = "";
   restarts = 0;
-  blink.setTiming(5000, 60, 1200);
+  blink.setTiming(5000, 100, 1200);
   if (file.sdcard()->dataDir(settings.Path))
     Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.Path);
   file.setWriteInterval(2*aidata.DMABufferTime());
@@ -213,12 +213,12 @@ void setup() {
   rtclock.report();
   config.setConfigFile("logger.cfg");
   config.configure(sdcard);
-  aidata.setSwapLR();
+  //aidata.setSwapLR();
   Wire1.begin();
   Serial.printf("Setup PCM186x 1 on TDM 2: ");
   setupPCM(aidata, pcm1);
-  pcm1.setGain(ControlPCM186x::ADC1L, 0.0);                // LED
-  pcm1.setGain(ControlPCM186x::ADC1R, aisettings.gain());  // signal
+  pcm1.setGain(ControlPCM186x::ADC1L, aisettings.gain());  // signal
+  pcm1.setGain(ControlPCM186x::ADC1R, 0.0);                // LED
   pcm2.setupTDM(ControlPCM186x::CH2L, ControlPCM186x::CH2R,true);
   pcm2.powerdown();
   Serial.printf("Setup PCM186x 2 on TDM 2: powered down\n");
@@ -238,7 +238,7 @@ void setup() {
   Serial.printf("ADC1R g=%.1fdB\n", pcm1.gain(ControlPCM186x::ADC1R));
   Serial.printf("ADC1L g=%.1fdB\n", pcm1.gain(ControlPCM186x::ADC1L));
   char gs[16];
-  pcm1.gainStr(ControlPCM186x::ADC1R, gs, PREGAIN);
+  pcm1.gainStr(ControlPCM186x::ADC1L, gs, PREGAIN);
   setupStorage(gs);
   openNextFile();
 }
