@@ -37,7 +37,7 @@ SDWriter file(sdcard, aidata);
 Configurator config;
 Settings settings(PATH, FILENAME, FILE_SAVE_TIME, 0.0,
                   0.0, INITIAL_DELAY);
-InputTDMSettings aisettings(&aidata, SAMPLING_RATE, NCHANNELS, GAIN);                  
+InputTDMSettings aisettings(SAMPLING_RATE, NCHANNELS, GAIN);                  
 RTClock rtclock;
 Blink blink(LED_PIN, true, LED_BUILTIN, false);
 
@@ -50,10 +50,10 @@ void setupStorage(char *gainstr) {
   prevname = "";
   restarts = 0;
   blink.setTiming(5000, 100, 1200);
-  if (file.sdcard()->dataDir(settings.Path))
-    Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.Path);
+  if (file.sdcard()->dataDir(settings.path()))
+    Serial.printf("Save recorded data in folder \"%s\".\n\n", settings.path());
   file.setWriteInterval(2*aidata.DMABufferTime());
-  file.setMaxFileTime(settings.FileTime);
+  file.setMaxFileTime(settings.fileTime());
   file.header().setSoftware(SOFTWARE);
   if (gainstr != 0)
     file.header().setGain(gainstr);
@@ -65,7 +65,7 @@ void openNextFile() {
   blink.setRandom();
   blink.blinkMultiple(5, 0, 200, 200);
   time_t t = now();
-  String fname = rtclock.makeStr(settings.FileName, t, true);
+  String fname = rtclock.makeStr(settings.fileName(), t, true);
   if (fname != prevname) {
     file.sdcard()->resetFileCounter();
     prevname = fname;
@@ -213,6 +213,7 @@ void setup() {
   rtclock.report();
   config.setConfigFile("logger.cfg");
   config.configure(sdcard);
+  aidata.setRate(aisettings.rate());
   //aidata.setSwapLR();
   Wire1.begin();
   Serial.printf("Setup PCM186x 1 on TDM 2: ");
@@ -228,13 +229,13 @@ void setup() {
   aidata.start();
   aidata.report();
   blink.switchOff();
-  if (settings.InitialDelay >= 2.0) {
+  if (settings.initialDelay() >= 2.0) {
     delay(1000);
     blink.setDouble();
-    blink.delay(uint32_t(1000.0*settings.InitialDelay)-1000);
+    blink.delay(uint32_t(1000.0*settings.initialDelay())-1000);
   }
   else
-    delay(uint32_t(1000.0*settings.InitialDelay));
+    delay(uint32_t(1000.0*settings.initialDelay()));
   Serial.printf("ADC1R g=%.1fdB\n", pcm1.gain(ControlPCM186x::ADC1R));
   Serial.printf("ADC1L g=%.1fdB\n", pcm1.gain(ControlPCM186x::ADC1L));
   char gs[16];

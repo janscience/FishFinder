@@ -14,18 +14,30 @@ class FishfinderSettings : public Configurable {
 
 public:
 
+  static const size_t MaxStr = 128;
+
+  static const int MaxModes = 4;
+
+  static const char *ModeStrings[MaxModes];
+  
+  static const int ModeEnums[MaxModes];
+
   FishfinderSettings(const char *path="recordings",
 		     const char *filename="SDATELNUM.wav",
 		     int mode=0);
 
-  static int modeEnum(const char *mode);
-  
-  virtual void configure(const char *key, const char *val);
+  const char *path() const { return Path.value(); };
+  const char *fileName() const { return FileName.value(); };
+  int mode() const { return Mode.value(); };
+  void setMode(int mode) { Mode.setValue(mode); };
 
-  static const size_t MaxStr = 99;
-  char Path[MaxStr + 1];
-  char FileName[MaxStr + 1];
-  int Mode;
+  
+protected:
+
+  StringParameter<MaxStr> Path;
+  StringParameter<MaxStr> FileName;
+  EnumParameter<int> Mode;
+  
 };
 
 #endif

@@ -20,11 +20,16 @@ public:
 		 int mode=0,
 		 float filetime=10.0,
 		 float initialdelay=0.0);
-  
-  virtual void configure(const char *key, const char *val);
 
-  float FileTime;
-  float InitialDelay;
+  float fileTime() const { return FileTime.value(); };
+  float initialDelay() const { return InitialDelay.value(); };
+
+  
+protected:
+
+  NumberParameter<float> FileTime;
+  NumberParameter<float> InitialDelay;
+  
 };
 
 #endif

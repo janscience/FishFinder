@@ -14,12 +14,18 @@ class DeviceSettings : public Configurable {
 
 public:
 
-  DeviceSettings(const char *device_name="1");
-  
-  virtual void configure(const char *key, const char *val);
+  static const int MaxStr = 16;
 
-  static const size_t MaxStr = 11;
-  char DeviceName[MaxStr + 1];
+  DeviceSettings(const char *devicename="1");
+
+  const char *deviceName() const { return DeviceName.value(); };
+  void setDeviceName(const char *devicename) { DeviceName.setValue(devicename); };
+  
+  
+protected:
+
+  StringParameter<MaxStr> DeviceName;
+  
 };
 
 #endif

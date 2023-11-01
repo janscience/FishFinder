@@ -306,10 +306,10 @@ void setupDataADC(int i) {
 void showDataADC(int id) {
   #ifdef LOGGER
   if (id > 2)
-    setupDataADC(logger_settings.Mode);
+    setupDataADC(logger_settings.mode());
   else
   #endif
-    setupDataADC(settings.Mode);
+    setupDataADC(settings.mode());
   char msg[100];
   String convspeed = aidata.conversionSpeedShortStr();
   String samplspeed = aidata.samplingSpeedShortStr();
@@ -412,7 +412,7 @@ String makeFileName(const char *filename) {
   CHECK_MEMORY
   String name = filename;
   if (name.indexOf("DEV") >= 0)
-    name.replace("DEV", device_settings.DeviceName);
+    name.replace("DEV", device_settings.deviceName());
   time_t t = now();
   name = rtclock.makeStr(name, t, true);
   if (name != prevname) {
@@ -486,7 +486,7 @@ bool openNextFile(const String &name) {
 
 void startRecording() {
   reporttime.disable();
-  String name = makeFileName(settings.FileName);
+  String name = makeFileName(settings.fileName());
   openFile(name);
   SwapCounter = 0;
 }
@@ -534,12 +534,12 @@ void stopVoiceMessage() {
   aidata.stop();
   screen.clearText(SCREEN_TEXT_ACTION);
   screen.clearText(SCREEN_TEXT_FILETIME);
-  setupDataADC(settings.Mode);
+  setupDataADC(settings.mode());
   aidata.start();
   aidata.report();
   audio.play();
-  analysis.start(ai_settings[settings.Mode]->analysisInterval(),
-		 ai_settings[settings.Mode]->analysisWindow());
+  analysis.start(ai_settings[settings.mode()]->analysisInterval(),
+		 ai_settings[settings.mode()]->analysisWindow());
   Serial.println("STOP VOICE MESSAGE");
 }
 
@@ -615,7 +615,7 @@ void setGain() {
       ai_settings[mode]->setChannel2(-1);
     }
   }
-  setupDataADC(settings.Mode);
+  setupDataADC(settings.mode());
   aidata.start();
   aidata.report();
   audio.play();
@@ -791,7 +791,7 @@ void loggerStoreData() {
     }
     if (datafile.endWrite() || samples < 0) {
       datafile.close();  // file size was set by openWave()
-      String name = makeFileName(logger_settings.FileName);
+      String name = makeFileName(logger_settings.fileName());
       if (samples < 0) {
         restarts++;
         if (restarts >= 5) {
@@ -841,19 +841,19 @@ void setupAnalysis() {
   plotting.setSkipping(4);
   plotting.setWindow(0.01);
   plotting.setAlignMax(0.5);        // align maximum in center of plot
-  analysis.start(ai_settings[settings.Mode]->analysisInterval(),
-		 ai_settings[settings.Mode]->analysisWindow());
+  analysis.start(ai_settings[settings.mode()]->analysisInterval(),
+		 ai_settings[settings.mode()]->analysisWindow());
 }
 
 
 void selectFishfinderMode(int id) {
-  settings.Mode = id;
+  settings.setMode(id);
 }
 
 
 #ifdef LOGGER
 void selectLoggerMode(int id) {
-  logger_settings.Mode = id;
+  logger_settings.setMode(id);
 }
 #endif
 
@@ -905,21 +905,21 @@ void formatSDCard(int id=0) {
 #ifdef LOGGER
 void runLogger(int id=0) {
   screen.setBacklightOff();
-  setupDataADC(logger_settings.Mode);
-  setupStorage(logger_settings.Path);
-  datafile.setMaxFileTime(logger_settings.FileTime);
+  setupDataADC(logger_settings.mode());
+  setupStorage(logger_settings.path());
+  datafile.setMaxFileTime(logger_settings.fileTime());
   aidata.check();
   aidata.start();
   aidata.report();
   blink.switchOff();
-  if (logger_settings.InitialDelay >= 2.0) {
+  if (logger_settings.initialDelay() >= 2.0) {
     delay(1000);
     blink.setDouble();
-    blink.delay(uint32_t(1000.0*logger_settings.InitialDelay) - 1000);
+    blink.delay(uint32_t(1000.0*logger_settings.initialDelay()) - 1000);
   }
   else
-    delay(uint32_t(1000.0*logger_settings.InitialDelay));
-  String name = makeFileName(logger_settings.FileName);
+    delay(uint32_t(1000.0*logger_settings.initialDelay()));
+  String name = makeFileName(logger_settings.fileName());
   if (name.length() == 0) {
     Serial.println("-> halt");
     aidata.stop();
@@ -937,8 +937,8 @@ void runLogger(int id=0) {
 
 
 void runFishfinder(int id=0) {
-  setupDataADC(settings.Mode);
-  setupStorage(settings.Path);
+  setupDataADC(settings.mode());
+  setupStorage(settings.path());
   setupScreen();
   setupAudio();
   setupAnalysis();
@@ -971,29 +971,31 @@ void resetSettings(int id) {
   int mode = 0;
   EEPROM.get(addr, mode);
   if (mode != 1) {
-    settings.Mode = 1;
-    EEPROM.put(addr, settings.Mode);
+    mode = 1;
+    settings.setMode(mode);
+    EEPROM.put(addr, mode);
   }
-  addr += sizeof(settings.Mode);
+  addr += sizeof(mode);
 #ifdef LOGGER
   EEPROM.get(addr, mode);
   if (mode != 1) {
-    logger_settings.Mode = 1;
-    EEPROM.put(addr, logger_settings.Mode);
+    mode = 1;
+    logger_settings.setMode(mode);
+    EEPROM.put(addr, mode);
   }
-  addr += sizeof(logger_settings.Mode);
+  addr += sizeof(mode);
 #endif
   char device_name[device_settings.MaxStr];
   EEPROM.get(addr, device_name);
   if (strcmp(device_name, DEVICE_NAME) != 0) {
-    strcpy(device_settings.DeviceName, DEVICE_NAME);
-    EEPROM.put(addr, device_settings.DeviceName);
+    device_settings.setDeviceName(DEVICE_NAME);
+    EEPROM.put(addr, device_settings.deviceName());
   }
-  addr += sizeof(device_settings.DeviceName);
+  addr += sizeof(device_settings.deviceName());
   char title[50];
   strcpy(title, SOFTWARE);
   strcat(title, "     Device ");
-  strcat(title, device_settings.DeviceName);
+  strcat(title, device_settings.deviceName());
   menu.setTitle(title);
   screen.clear();
   screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
@@ -1021,20 +1023,20 @@ void saveSettings(int id) {
   int addr = 0;
   int mode = 0;
   EEPROM.get(addr, mode);
-  if (settings.Mode != mode)
-    EEPROM.put(addr, settings.Mode);
-  addr += sizeof(settings.Mode);
+  if (settings.mode() != mode)
+    EEPROM.put(addr, settings.mode());
+  addr += sizeof(settings.mode());
 #ifdef LOGGER
   EEPROM.get(addr, mode);
-  if (logger_settings.Mode != mode)
-    EEPROM.put(addr, logger_settings.Mode);
-  addr += sizeof(logger_settings.Mode);
+  if (logger_settings.mode() != mode)
+    EEPROM.put(addr, logger_settings.mode());
+  addr += sizeof(logger_settings.mode());
 #endif
   char device_name[device_settings.MaxStr];
   EEPROM.get(addr, device_name);
-  if (strcmp(device_settings.DeviceName, device_name) != 0)
-    EEPROM.put(addr, device_settings.DeviceName);
-  addr += sizeof(device_settings.DeviceName);
+  if (strcmp(device_settings.deviceName(), device_name) != 0)
+    EEPROM.put(addr, device_settings.deviceName());
+  addr += sizeof(device_settings.deviceName());
   screen.clear();
   screen.setTextArea(0, 0.25, 0.7, 0.8, 0.8);
   screen.writeText(0, SOFTWARE);
@@ -1059,15 +1061,18 @@ void saveSettings(int id) {
 
 void loadSettings() {
   int addr = 0;
-  EEPROM.get(addr, settings.Mode);
-  if (settings.Mode < 0 || settings.Mode >= MAX_SETTINGS)
-    settings.Mode = 1;
-  addr += sizeof(settings.Mode);
+  int mode;
+  EEPROM.get(addr, mode);
+  if (mode < 0 || mode >= MAX_SETTINGS)
+    mode = 1;
+  settings.setMode(mode);
+  addr += sizeof(mode);
 #ifdef LOGGER
-  EEPROM.get(addr, logger_settings.Mode);
-  if (logger_settings.Mode < 0 || logger_settings.Mode >= MAX_SETTINGS)
-    logger_settings.Mode = 1;
-  addr += sizeof(logger_settings.Mode);
+  EEPROM.get(addr, mode);
+  if (mode < 0 || mode >= MAX_SETTINGS)
+    mode = 1;
+  logger_settings.setMode(mode);
+  addr += sizeof(logger_settings.mode());
 #endif
   /*
   char device_name[device_settings.MaxStr];
@@ -1088,10 +1093,10 @@ void initMenu() {
   for (int k=0; k<MAX_SETTINGS; k++) {
     if (ai_settings[k]->analysisWindow() > 0)
       fishfinder_menu.addRadioButton(ai_settings[k]->name(),
-				     k==settings.Mode);
+				     k==settings.mode());
 #ifdef LOGGER
     logger_menu.addRadioButton(ai_settings[k]->name(),
-			       k==logger_settings.Mode);
+			       k==logger_settings.mode());
 #endif
   }
   fishfinder_menu.setCheckedAction(selectFishfinderMode);
@@ -1116,7 +1121,7 @@ void initMenu() {
   char title[50];
   strcpy(title, SOFTWARE);
   strcat(title, "     Device ");
-  strcat(title, device_settings.DeviceName);
+  strcat(title, device_settings.deviceName());
   menu.setTitle(title);
   menu.addAction("Run as fishfinder", runFishfinder, 0);
 #ifdef LOGGER
