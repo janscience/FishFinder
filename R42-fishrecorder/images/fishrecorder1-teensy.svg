@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg2"
+   width="1999.9988"
+   height="680.75598"
+   viewBox="0 0 1999.9988 680.75598"
+   sodipodi:docname="fishrecorder1-teensy.svg"
+   inkscape:export-filename="fishrecorder1-teensy.png"
+   inkscape:export-xdpi="100"
+   inkscape:export-ydpi="100"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:zoom="0.60250037"
+     inkscape:cx="999.99939"
+     inkscape:cy="341.07863"
+     inkscape:window-width="1920"
+     inkscape:window-height="995"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g8" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g8">
+    <image
+       width="1999.9988"
+       height="680.75598"
+       preserveAspectRatio="none"
+       style="stroke-width:1.798;image-rendering:optimizeQuality"
+       xlink:href="fishrecorder1-teensy.jpg"
+       id="image10"
+       x="0"
+       y="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:64px;line-height:1.25;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:none"
+       x="667.21118"
+       y="621.07654"
+       id="text7692"><tspan
+         sodipodi:role="line"
+         id="tspan7690"
+         x="667.21118"
+         y="621.07654">On/Off switch</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:64px;line-height:1.25;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:none"
+       x="1375.6768"
+       y="621.07654"
+       id="text10356"><tspan
+         sodipodi:role="line"
+         id="tspan10354"
+         x="1375.6768"
+         y="621.07654">Micro SD card</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:64px;line-height:1.25;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:none"
+       x="681.69434"
+       y="111.21304"
+       id="text11812"><tspan
+         sodipodi:role="line"
+         id="tspan11810"
+         x="681.69434"
+         y="111.21304">Teensy 4.1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:64px;line-height:1.25;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:none"
+       x="1495.4589"
+       y="55.830189"
+       id="text17392"><tspan
+         sodipodi:role="line"
+         id="tspan17390"
+         x="1495.4589"
+         y="55.830189">battery pack</tspan><tspan
+         sodipodi:role="line"
+         x="1495.4589"
+         y="135.83018"
+         id="tspan17394">(4x 1.2V)</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 895.57625,127.73546 993.82112,289.4029"
+       id="path19806" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 1314.3023,439.79901 75.0375,119.84977"
+       id="path19808" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 617.03507,397.47842 87.8465,157.03622"
+       id="path19810" />
+  </g>
+</svg>

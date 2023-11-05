@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg2"
+   width="1999.9999"
+   height="948.11694"
+   viewBox="0 0 1999.9999 948.11694"
+   sodipodi:docname="fishrecorder1-housing.svg"
+   inkscape:export-filename="fishrecorder1-housing.png"
+   inkscape:export-xdpi="100"
+   inkscape:export-ydpi="100"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:zoom="0.60250004"
+     inkscape:cx="1421.5767"
+     inkscape:cy="473.85889"
+     inkscape:window-width="1920"
+     inkscape:window-height="995"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g8" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g8">
+    <image
+       width="1999.9999"
+       height="948.11694"
+       preserveAspectRatio="none"
+       style="stroke-width:2.42303;image-rendering:optimizeQuality"
+       xlink:href="fishrecorder1-housing.jpg"
+       id="image10"
+       x="0"
+       y="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif"
+       x="472.88025"
+       y="683.508"
+       id="text14672"><tspan
+         sodipodi:role="line"
+         id="tspan14670"
+         x="472.88025"
+         y="683.508"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:64px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">LED</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:64px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal'"
+       x="55.119919"
+       y="683.508"
+       id="text20520"><tspan
+         sodipodi:role="line"
+         id="tspan20518"
+         x="55.119919"
+         y="683.508">+ Electrode</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:64px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal'"
+       x="1217.613"
+       y="683.508"
+       id="text22240"><tspan
+         sodipodi:role="line"
+         id="tspan22238"
+         x="1217.613"
+         y="683.508">GND Electrode</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:64px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal'"
+       x="620.17084"
+       y="521.83624"
+       id="text25090"><tspan
+         sodipodi:role="line"
+         id="tspan25088"
+         x="620.17084"
+         y="521.83624">Recorder</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 199.06981,705.95956 65.12718,82.14257"
+       id="path25525"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 539.08074,707.10906 35.38743,69.26934"
+       id="path25693" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 1329.6029,702.23686 -34.8312,62.25658"
+       id="path25695" />
+  </g>
+</svg>
