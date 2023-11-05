@@ -16,15 +16,15 @@ the LED for synchronization with the video recording.
 <img src="images/fishrecorder1-teensy.png" width=100%>
 
 Inside we see the Teensy microcontroller with the micro SD card on
-which the recorded data are stored, the on/off switch, and the 2 of
-the 4 AA-batteries.
+which the recorded data are stored, the on/off switch, and 2 of the 4
+AA-batteries.
 
 <img src="images/fishrecorder1-amplifier.png" width=100%>
 
-On the other side we see the backside of the amplifier PCB - an
+On the other side we see the backside of the amplifier PCB - a
   [Teensy_Amp
   R4.2](https://github.com/janscience/Teensy_Amp/tree/main/R4.2). It
-  drives the LED (top right connector). THe LED signal is attenuated
+  drives the LED (top right connector). The LED signal is attenuated
   by a factor of about 10 by means of a voltage divider (330 Ohm, top,
   and 4.7kOhm, bottom). This attenuated LED signal is recorded by the
   amplifier (blue wire) together with the electrode signal (black
@@ -66,7 +66,7 @@ is just long enough for your stretched arm.
    then blinks with random intervals and durations. Every 5 minutes a
    new file is opened as indicated by another series of 5 blinks.
 
-5. Close the recorder by screwing the housing on the lid. Make sure
+5. Close the recorder by screwing the housing onto the lid. Make sure
    the O-ring is still in the lid. The recorder keeps recording.
 
 6. Mount the recorder on your gear and go diving.
