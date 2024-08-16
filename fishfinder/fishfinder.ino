@@ -1149,13 +1149,14 @@ void setup() {
   voiceled.switchOn();
   Serial.begin(9600);
   while (!Serial && millis() < 200) {};
+  Serial.println("\n=======================================================================\n");
   rtclock.check();
   rtclock.report();
   initScreen(screen);
   loadSettings();
   sdcard.begin();
   config.setConfigFile("fishfinder.cfg");
-  config.configure(sdcard);
+  config.load(sdcard);
   initMenu();
   initButtons();
   DateFileTime = 0;

@@ -212,7 +212,7 @@ void setup() {
   rtclock.setFromFile(sdcard);
   rtclock.report();
   config.setConfigFile("logger.cfg");
-  config.configure(sdcard);
+  config.load(sdcard);
   aidata.setRate(aisettings.rate());
   //aidata.setSwapLR();
   Wire1.begin();

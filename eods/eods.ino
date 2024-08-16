@@ -95,6 +95,7 @@ void start_fish() {
 void setup() {
   Serial.begin(9600);
   while (!Serial && millis() < 100) {};
+  Serial.println("\n=======================================================================\n");
   blink.setSingle();
   buttons.add(FREQ_UP_PIN, INPUT_PULLUP, frequency_up);
   buttons.add(FREQ_DOWN_PIN, INPUT_PULLUP, frequency_down);
