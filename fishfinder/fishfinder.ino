@@ -20,7 +20,7 @@
 // Detect clipping and give audio feedback:
 #define DETECT_CLIPPING
 
-// Compute spectrum and detect paek frequency:
+// Compute spectrum and detect peak frequency:
 #define COMPUTE_SPECTRUM
 
 //#define COMPUTE_CORRELATIONS    // TODO: not fully implemented yet

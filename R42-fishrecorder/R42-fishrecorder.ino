@@ -35,8 +35,7 @@ SDCard sdcard;
 SDWriter file(sdcard, aidata);
 
 Configurator config;
-Settings settings(PATH, FILENAME, FILE_SAVE_TIME, 0.0,
-                  0.0, INITIAL_DELAY);
+Settings settings(PATH, FILENAME, FILE_SAVE_TIME, INITIAL_DELAY);
 InputTDMSettings aisettings(SAMPLING_RATE, NCHANNELS, GAIN);                  
 RTClock rtclock;
 Blink blink(LED_PIN, true, LED_BUILTIN, false);
@@ -211,6 +210,7 @@ void setup() {
   sdcard.begin();
   rtclock.setFromFile(sdcard);
   rtclock.report();
+  setings.enable("InitialDelay");
   config.setConfigFile("logger.cfg");
   config.load(sdcard);
   aidata.setRate(aisettings.rate());
