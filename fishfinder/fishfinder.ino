@@ -50,7 +50,7 @@
 #include <RTClock.h>
 #include <PushButtons.h>
 #include <Blink.h>
-#include <Menu.h>
+#include <ScreenMenu.h>
 #include <Configurator.h>
 #include <DeviceSettings.h>
 #include <InputADCSettings.h>
@@ -265,10 +265,10 @@ Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE, &an
 ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 
 PushButtons buttons;
-Menu menu;
-Menu settings_menu;
-Menu fishfinder_menu;
-Menu logger_menu;
+ScreenMenu menu;
+ScreenMenu settings_menu;
+ScreenMenu fishfinder_menu;
+ScreenMenu logger_menu;
 Blink blink(RECORD_LED_PIN);
 Blink voiceled(VOICE_LED_PIN);
 
