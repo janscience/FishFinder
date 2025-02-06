@@ -11,10 +11,10 @@ FishfinderADCSettings::FishfinderADCSettings(const char *name, int8_t channel1, 
 					     float analysis_window) :
   InputADCSettings(name, rate, bits, averaging, conversion_speed,
 		   sampling_speed, reference),
-  Channel1(this, "Channel1", channel1, "%hd"),
-  Channel2(this, "Channel2", channel2, "%hd"),
-  AnalysisInterval(this, "AnalysisInterval",  analysis_interval, "%.0f", "s", "ms"),
-  AnalysisWindow(this, "AnalysisWindow", analysis_window, "%.0f", "s", "ms") {
+  Channel1(*this, "Channel1", channel1, "%hd"),
+  Channel2(*this, "Channel2", channel2, "%hd"),
+  AnalysisInterval(*this, "AnalysisInterval",  analysis_interval, "%.0f", "s", "ms"),
+  AnalysisWindow(*this, "AnalysisWindow", analysis_window, "%.0f", "s", "ms") {
 }
 
 

@@ -7,6 +7,7 @@
 #define DeviceSettings_h
 
 
+#include <Parameter.h>
 #include <Configurable.h>
 
 

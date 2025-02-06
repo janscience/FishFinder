@@ -7,6 +7,7 @@
 #define FishfinderSettings_h
 
 
+#include <Parameter.h>
 #include <Configurable.h>
 
 

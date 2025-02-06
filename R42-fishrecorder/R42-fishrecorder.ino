@@ -3,6 +3,7 @@
 #include <InputTDM.h>
 #include <SDWriter.h>
 #include <RTClock.h>
+#include <DeviceID.h>
 #include <Blink.h>
 #include <Configurator.h>
 #include <Settings.h>
@@ -16,6 +17,7 @@
 #define GAIN          30.0     // dB
 
 #define PATH          "recordings"   // folder where to store the recordings
+#define DEVICEID       1              // may be used for naming files
 #define FILENAME      "rec1-SDATETIME.wav"  // may include DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, ANUM, NUM
 #define FILE_SAVE_TIME 5*60    // seconds
 #define INITIAL_DELAY  10.0    // seconds
@@ -35,9 +37,10 @@ SDCard sdcard;
 SDWriter file(sdcard, aidata);
 
 Configurator config;
-Settings settings(PATH, FILENAME, FILE_SAVE_TIME, INITIAL_DELAY);
+Settings settings(PATH, DEVICEID, FILENAME, FILE_SAVE_TIME, INITIAL_DELAY);
 InputTDMSettings aisettings(SAMPLING_RATE, NCHANNELS, GAIN);                  
 RTClock rtclock;
+DeviceID deviceid(DEVICEID);
 Blink blink(LED_PIN, true, LED_BUILTIN, false);
 
 
@@ -45,7 +48,7 @@ int restarts = 0;
 String prevname; // previous file name
 
 
-void setupStorage(char *gainstr) {
+void setupStorage() {
   prevname = "";
   restarts = 0;
   blink.setTiming(5000, 100, 1200);
@@ -54,8 +57,6 @@ void setupStorage(char *gainstr) {
   file.setWriteInterval(2*aidata.DMABufferTime());
   file.setMaxFileTime(settings.fileTime());
   file.header().setSoftware(SOFTWARE);
-  if (gainstr != 0)
-    file.header().setGain(gainstr);
   file.start();
 }
 
@@ -98,7 +99,7 @@ void openNextFile() {
     char mfs[100];
     sprintf(mfs, "%s-error0-overrun.msg", file.baseName().c_str());
     Serial.println(mfs);
-    File mf = sdcard.openWrite(mfs);
+    FsFile mf = sdcard.openWrite(mfs);
     mf.close();
   }
   Serial.println(file.name());
@@ -144,7 +145,7 @@ void storeData() {
       char mfs[100];
       sprintf(mfs, "%s-error%d-%s.msg", file.baseName().c_str(), restarts+1, errorstr);
       Serial.println(mfs);
-      File mf = sdcard.openWrite(mfs);
+      FsFile mf = sdcard.openWrite(mfs);
       mf.close();
       Serial.println();
     }
@@ -210,7 +211,7 @@ void setup() {
   sdcard.begin();
   rtclock.setFromFile(sdcard);
   rtclock.report();
-  setings.enable("InitialDelay");
+  settings.enable("InitialDelay");
   config.setConfigFile("logger.cfg");
   config.load(sdcard);
   aidata.setRate(aisettings.rate());
@@ -218,8 +219,9 @@ void setup() {
   Wire1.begin();
   Serial.printf("Setup PCM186x 1 on TDM 2: ");
   setupPCM(aidata, pcm1);
-  pcm1.setGain(ControlPCM186x::ADC1L, aisettings.gain());  // signal
-  pcm1.setGain(ControlPCM186x::ADC1R, 0.0);                // LED
+  float level = pcm1.setGainDecibel(ControlPCM186x::ADC1L, aisettings.gainDecibel());  // signal
+  aidata.setGain(1650.0/pcm1.gainFromDecibel(level));
+  pcm1.setGainDecibel(ControlPCM186x::ADC1R, 0.0);                // LED
   pcm2.setupTDM(ControlPCM186x::CH2L, ControlPCM186x::CH2R,true);
   pcm2.powerdown();
   Serial.printf("Setup PCM186x 2 on TDM 2: powered down\n");
@@ -238,9 +240,7 @@ void setup() {
     delay(uint32_t(1000.0*settings.initialDelay()));
   Serial.printf("ADC1R g=%.1fdB\n", pcm1.gain(ControlPCM186x::ADC1R));
   Serial.printf("ADC1L g=%.1fdB\n", pcm1.gain(ControlPCM186x::ADC1L));
-  char gs[16];
-  pcm1.gainStr(ControlPCM186x::ADC1L, gs, PREGAIN);
-  setupStorage(gs);
+  setupStorage();
   openNextFile();
 }
 

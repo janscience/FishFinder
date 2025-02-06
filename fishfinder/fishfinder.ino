@@ -723,7 +723,7 @@ void storeData() {
         datafile.closeWave();
         char mfs[30];
         sprintf(mfs, "error%d-%d.msg", restarts+1, -samples);
-        File mf = sdcard.openWrite(mfs);
+        FsFile mf = sdcard.openWrite(mfs);
         mf.close();
       }
     }
@@ -785,7 +785,7 @@ void loggerStoreData() {
         datafile.closeWave();
         char mfs[30];
         sprintf(mfs, "error%d-%d.msg", restarts+1, -samples);
-        File mf = sdcard.openWrite(mfs);
+        FsFile mf = sdcard.openWrite(mfs);
         mf.close();
       }
     }
