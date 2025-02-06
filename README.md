@@ -45,6 +45,13 @@ Simple MTP responder for transfering files from SD card to computer:
 - [mtpfiletransfer](mtpfiletransfer/)
 
 
+## Demos
+
+In the `examples/` folder you find:
+
+- [screenmenu](examples/screenmenu/screenmenu.ino): simple interactive menu
+
+
 ## Power consumption
 
 Without amplifier:
