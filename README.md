@@ -33,6 +33,7 @@ Smart fishfinders for better EOD recordings of electric fish in the field.
 
 Current version of the fishfinder software:
 
+- [R42-fishfinder](R42-fishfinder/)
 - [fishfinder](fishfinder/)
 
 EOD waveform generator:
