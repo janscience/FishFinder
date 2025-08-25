@@ -1,0 +1,168 @@
+#include <FishfinderBanner.h>
+#include <Wire.h>
+#include <ControlPCM186x.h>
+#include <SetupPCM.h>
+#include <InputTDM.h>
+#include <SDCard.h>
+#include <DeviceID.h> 
+#include <Display.h>
+#include <ST7789_t3.h>
+#include <fonts/FreeSans12pt7b.h>
+#include <AnalysisChain.h>
+#include <Plotting.h>
+#include <MicroConfig.h>
+#include <Settings.h>
+#include <InputTDMSettings.h>
+
+// Default settings: ----------------------------------------------------------
+// (may be overwritten by config file fishgrid.cfg)
+#define NCHANNELS        2        // number of channels (even, from 2 to 16)
+#define SAMPLING_RATE    48000    // samples per second and channel in Hertz
+#define PREGAIN          10.0     // gain factor of preamplifier
+#define GAIN             0.0      // dB
+
+#define DEVICEID         1                  // may be used for naming pathes and files
+#define PATH             "ffID1-SDATE"   // folder where to store the recordings, may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM
+#define FILENAME         "ffID1-SDATENNUM3.wav"  // may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM, ANUM, COUNT
+
+#define ANALYSIS_INTERVAL  0.2 // seconds
+#define ANALYSIS_WINDOW    0.2 // seconds
+
+// TFT display: ---------------------------------------------------------------
+
+#define TFT_ROTATION      3
+
+#define TFT_SCK_PIN      13   // SPI bus
+#define TFT_CS_PIN       10  
+#define TFT_MOSI_PIN     11   // SPI bus
+#define TFT_RST_PIN       8
+#define TFT_DC_PIN       14
+#define TFT_BL_PIN       15   // backlight PWM
+
+// Text areas: ----------------------------------------------------------------
+
+#define SCREEN_TEXT_ACTION    0
+#define SCREEN_TEXT_DATEFILE  1
+#define SCREEN_TEXT_PEAKFREQ  2
+#define SCREEN_TEXT_FILETIME  3
+#define SCREEN_TEXT_UPDOWN    4
+#define SCREEN_TEXT_CLIPPING  5
+#define SCREEN_TEXT_TIME      6
+#define SCREEN_TEXT_AMPLITUDE 7
+
+// ----------------------------------------------------------------------------
+
+#define SOFTWARE "R42-FishFinder V2.0"
+
+EXT_DATA_BUFFER(AIBuffer, NAIBuffer, 16*512*256)
+InputTDM aidata(AIBuffer, NAIBuffer);
+#define NPCMS 1
+ControlPCM186x pcm(Wire1, PCM186x_I2C_ADDR2, InputTDM::TDM2);
+Device *pcms[NPCMS] = {&pcm};
+
+Display screen;
+ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
+              TFT_SCK_PIN, TFT_RST_PIN);
+
+AnalysisChain analysis(aidata);
+Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE,
+                  &analysis);
+
+DeviceID deviceid(DEVICEID);
+SDCard sdcard;
+
+Config config("fishfinder.cfg", &sdcard);
+Settings settings(config, PATH, DEVICEID, FILENAME);
+InputTDMSettings aisettings(config, SAMPLING_RATE, NCHANNELS, GAIN, PREGAIN);
+
+String prevname; // previous file name without increment
+String lastname; // last recorded file name
+int restarts = 0;
+int updownstate = 0;    // how to use up/down buttons
+const int maxupdownstates = 4; // number of different usages for up/down buttons
+char updownids[maxupdownstates][2] = {"V", "G", "X", "Y"};
+
+
+void initScreen() {
+  tft.init(240, 320);
+  DisplayWrapper<ST7789_t3> *tftscreen = new DisplayWrapper<ST7789_t3>(&tft);
+  screen.init(tftscreen, TFT_ROTATION, true);
+  Serial.println();
+  screen.setDefaultFont(FreeSans12pt7b);
+  screen.clear();
+}
+
+
+void setupScreen() {
+  screen.clear();
+  screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.9, 0.38, 1.0);
+  screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.9, 1.0, 1.0);
+#ifdef COMPUTE_SPECTRUM
+  screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.77, 0.3, 0.87);
+#endif
+  screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.77, 1.0, 0.87);
+  screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
+  screen.setTextArea(SCREEN_TEXT_TIME, 0.0, 0.0, 0.25, 0.13);
+  screen.setTextArea(SCREEN_TEXT_AMPLITUDE, 0.0, 0.63, 0.15, 0.76);
+  screen.swapTextColors(SCREEN_TEXT_UPDOWN);
+  screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+#ifdef DETECT_CLIPPING
+  screen.setTextArea(SCREEN_TEXT_CLIPPING, 0.89, 0.79, 0.94, 0.87, true);
+  screen.swapTextColors(SCREEN_TEXT_CLIPPING);
+  screen.writeText(SCREEN_TEXT_CLIPPING,
+                   clippingids[clipping.feedbackEnabled()]);
+#endif
+  screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.82);
+  screen.setBacklightOn();
+}
+
+
+void setupAnalysis() {
+#ifdef DETECT_CLIPPING
+  clipping.setClipThreshold(0.9);   // make it configurable!
+  clipping.setMuteThreshold(0.7);   // make it configurable!
+#endif
+#ifdef COMPUTE_CORRELATIONS
+  correlation.disable();
+#endif
+#ifdef COMPUTE_SPECTRUM
+  spectrum.setNFFT(4096);
+  spectrum.setResolution(3.0);
+  peakfreq.setFrequencyRange(SPECTRUM_FMIN, SPECTRUM_FMAX);
+#endif
+  plotting.setSkipping(4);
+  plotting.setWindow(0.01);
+  plotting.setAlignMax(0.5);        // align maximum in center of plot
+  analysis.start(ANALYSIS_INTERVAL, ANALYSIS_WINDOW);
+}
+
+
+void setup() {
+  screen.setBacklightPin(TFT_BL_PIN);
+  aisettings.setRateSelection(ControlPCM186x::SamplingRates,
+                              ControlPCM186x::MaxSamplingRates);
+  aisettings.enable("Pregain");
+  Serial.begin(9600);
+  while (!Serial && millis() < 200) {};
+  printFishfinderBanner();
+  sdcard.begin();
+  //config.load();
+  //if (Serial)
+  //  config.execute(Serial, 10000);
+  config.report();
+  Serial.println();
+  deviceid.setID(settings.deviceID());
+  R4SetupPCMs(aidata, aisettings, pcms, NPCMS);
+  initScreen();
+  screen.setBacklightOn();
+  setupScreen();
+  setupAnalysis();
+  aidata.begin();
+  aidata.start();
+  aidata.report();
+}
+
+
+void loop() {
+  analysis.update();        
+}
