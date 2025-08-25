@@ -8,10 +8,10 @@
 
 
 #include <Parameter.h>
-#include <Configurable.h>
+#include <Menu.h>
 
 
-class FishfinderSettings : public Configurable {
+class FishfinderSettings : public Menu {
 
 public:
 

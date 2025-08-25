@@ -2,6 +2,6 @@
 
 
 DeviceSettings::DeviceSettings(const char *devicename) :
-  Configurable("Device"),
+  Menu("Device"),
   DeviceName(*this, "DeviceName", devicename) {
 }

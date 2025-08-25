@@ -10,7 +10,7 @@ const int FishfinderSettings::ModeEnums[FishfinderSettings::MaxModes] = {
 
 FishfinderSettings::FishfinderSettings(const char *path, const char *filename,
 				       int mode) :
-  Configurable("Fishfinder"),
+  Menu("Fishfinder"),
   Path(*this, "Path", path),
   FileName(*this, "FileName", filename),
   Mode(*this, "Mode", mode, ModeEnums, ModeStrings, MaxModes) {

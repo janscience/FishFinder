@@ -8,10 +8,10 @@
 
 
 #include <Parameter.h>
-#include <Configurable.h>
+#include <Menu.h>
 
 
-class DeviceSettings : public Configurable {
+class DeviceSettings : public Menu {
 
 public:
 
