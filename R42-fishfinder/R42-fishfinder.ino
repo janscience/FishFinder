@@ -1,9 +1,9 @@
 #include <FishfinderBanner.h>
 #include <Wire.h>
 #include <ControlPCM186x.h>
-#include <SetupPCM.h>
 #include <InputTDM.h>
 #include <SDCard.h>
+#include <SDWriter.h>
 #include <DeviceID.h> 
 #include <Display.h>
 #include <ST7789_t3.h>
@@ -56,10 +56,9 @@
 
 EXT_DATA_BUFFER(AIBuffer, NAIBuffer, 16*512*256)
 InputTDM aidata(AIBuffer, NAIBuffer);
-#define NPCMS 1
-ControlPCM186x pcm(Wire1, PCM186x_I2C_ADDR2, InputTDM::TDM2);
-Device *pcms[NPCMS] = {&pcm};
+ControlPCM186x pcm(Wire1, PCM186x_I2C_ADDR1, InputTDM::TDM2);
 
+/*
 Display screen;
 ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
               TFT_SCK_PIN, TFT_RST_PIN);
@@ -67,9 +66,11 @@ ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
 AnalysisChain analysis(aidata);
 Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE,
                   &analysis);
+*/
 
 DeviceID deviceid(DEVICEID);
 SDCard sdcard;
+SDWriter datafile(sdcard, aidata);
 
 Config config("fishfinder.cfg", &sdcard);
 Settings settings(config, PATH, DEVICEID, FILENAME);
@@ -82,7 +83,7 @@ int updownstate = 0;    // how to use up/down buttons
 const int maxupdownstates = 4; // number of different usages for up/down buttons
 char updownids[maxupdownstates][2] = {"V", "G", "X", "Y"};
 
-
+/*
 void initScreen() {
   tft.init(240, 320);
   DisplayWrapper<ST7789_t3> *tftscreen = new DisplayWrapper<ST7789_t3>(&tft);
@@ -115,8 +116,31 @@ void setupScreen() {
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.82);
   screen.setBacklightOn();
 }
+*/
 
+void setupAIData() {
+  Wire1.begin();
+  aidata.clearChannels();
+  aisettings.configure(&aidata);
+  aidata.setSwapLR();
+  Serial.printf("Setup PCM186x on TDM %d: ", pcm.TDMBus());
+  pcm.begin();
+  bool r = pcm.setMicBias(false, true);
+  if (!r) {
+    Serial.println("not available");
+    return;
+  }
+  pcm.setRate(aidata, aisettings.rate());
+  pcm.setupTDM(aidata, ControlPCM186x::CH2L, ControlPCM186x::CH2R,
+               0, ControlPCM186x::INVERTED);
+  Serial.println("configured for 2 channels");
+  pcm.setSmoothGainChange(false);
+  pcm.setGainDecibel(aidata, aisettings.gainDecibel());
+  pcm.setFilters(ControlPCM186x::FIR, false);
+  Serial.println();
+}
 
+/*
 void setupAnalysis() {
 #ifdef DETECT_CLIPPING
   clipping.setClipThreshold(0.9);   // make it configurable!
@@ -135,10 +159,10 @@ void setupAnalysis() {
   plotting.setAlignMax(0.5);        // align maximum in center of plot
   analysis.start(ANALYSIS_INTERVAL, ANALYSIS_WINDOW);
 }
-
+*/
 
 void setup() {
-  screen.setBacklightPin(TFT_BL_PIN);
+  //screen.setBacklightPin(TFT_BL_PIN);
   aisettings.setRateSelection(ControlPCM186x::SamplingRates,
                               ControlPCM186x::MaxSamplingRates);
   aisettings.enable("Pregain");
@@ -152,17 +176,29 @@ void setup() {
   config.report();
   Serial.println();
   deviceid.setID(settings.deviceID());
-  R4SetupPCMs(aidata, aisettings, pcms, NPCMS);
-  initScreen();
-  screen.setBacklightOn();
-  setupScreen();
-  setupAnalysis();
+  setupAIData();
+  //initScreen();
+  //screen.setBacklightOn();
+  //setupScreen();
+  //setupAnalysis();
   aidata.begin();
   aidata.start();
   aidata.report();
+  String name = "recNUM.wav";
+  name = datafile.sdcard()->incrementFileName(name);
+  datafile.openWave(name.c_str(), -1, "2025-08-23T22:23:14");
+  datafile.setMaxFileSamples(0);
+  datafile.start();
+  //screen.writeText(SCREEN_TEXT_ACTION, "REC");
 }
 
 
 void loop() {
-  analysis.update();        
+  //analysis.update();
+  if (millis() > 15000) {
+    datafile.closeWave();
+    //screen.clearText(SCREEN_TEXT_ACTION);
+  }
+  else if (datafile.pending())
+    datafile.write();
 }

@@ -1,6 +1,5 @@
 #include <MicroConfigBanner.h>
 #include <TeeRecBanner.h>
-#include <TeeGridBanner.h>
 #include <FishfinderBanner.h>
 
 
@@ -22,8 +21,6 @@ void printFishfinderBanner(const char *software, Stream &stream) {
   stream.println("by Benda-Lab");
   stream.print("based on ");
   stream.println(FISHFINDER_SOFTWARE);
-  stream.print("     and ");
-  stream.println(TEEGRID_SOFTWARE);
   stream.print("     and ");
   stream.println(TEEREC_SOFTWARE);
   stream.print("     and ");
