@@ -32,7 +32,7 @@
 #define NCHANNELS        2        // number of channels (even, from 2 to 16)
 #define SAMPLING_RATE    48000    // samples per second and channel in Hertz
 #define PREGAIN          10.0     // gain factor of preamplifier
-#define GAIN             0.0      // dB
+#define GAIN             40.0      // dB
 
 #define DEVICEID         1                  // may be used for naming pathes and files
 #define PATH             "ffID1-SDATE"   // folder where to store the recordings, may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM

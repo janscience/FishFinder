@@ -20,3 +20,23 @@
 - GND (black)
 - 3.3V (red)
 
+
+### Audio amplifier:
+
+[Adafruit MAX98357 I2S Class-D Mono Amp](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp)
+
+- LRC (blue): 20
+- BCLK (white): 21
+- DIN (yellow): 7
+- GAIN: GND (12dB gain)
+- SD (green): 6
+- GND
+- 3.3V
+
+
+### Switches
+
+- Volume down (purple): 28
+- Volume up (blue): 29
+- Record (orange): 30
+- Voice message (green): 31
