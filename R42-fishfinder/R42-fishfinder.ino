@@ -1,7 +1,13 @@
+// Features: ------------------------------------------------------------------
+
+// Compute spectrum and detect peak frequency:
+#define COMPUTE_SPECTRUM
+
 #include <FishfinderBanner.h>
 #include <Wire.h>
 #include <ControlPCM186x.h>
 #include <InputTDM.h>
+#include <AudioMonitor.h>
 #include <SDCard.h>
 #include <SDWriter.h>
 #include <DeviceID.h> 
@@ -10,6 +16,10 @@
 #include <fonts/FreeSans12pt7b.h>
 #include <AnalysisChain.h>
 #include <Plotting.h>
+#ifdef COMPUTE_SPECTRUM
+#include <Spectrum.h>
+#include <ReportPeakFreq.h>
+#endif
 #include <MicroConfig.h>
 #include <Settings.h>
 #include <InputTDMSettings.h>
@@ -25,8 +35,21 @@
 #define PATH             "ffID1-SDATE"   // folder where to store the recordings, may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM
 #define FILENAME         "ffID1-SDATENNUM3.wav"  // may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM, ANUM, COUNT
 
+#define AUDIO_BLOCKS     4
+
 #define ANALYSIS_INTERVAL  0.2 // seconds
 #define ANALYSIS_WINDOW    0.2 // seconds
+
+#ifdef COMPUTE_SPECTRUM
+#define SPECTRUM_FMIN  70.0   // Hz
+#define SPECTRUM_FMAX  2500.0 // Hz, 1.0e9 or larger: take all upto Nyquist frequency.
+#endif
+
+
+// Pin assignment: ------------------------------------------------------------
+
+#define AMPL_ENABLE_PIN   6  // pin for enabling audio amplifier
+
 
 // TFT display: ---------------------------------------------------------------
 
@@ -59,11 +82,18 @@ InputTDM aidata(AIBuffer, NAIBuffer);
 ControlPCM186x pcm(Wire1, PCM186x_I2C_ADDR1, InputTDM::TDM2);
 ControlPCM186x pcm2(Wire1, PCM186x_I2C_ADDR2, InputTDM::TDM2);
 
+AudioOutputI2S speaker;
+AudioMonitor audio(aidata, speaker);
+
 Display screen;
 ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
               TFT_SCK_PIN, TFT_RST_PIN);
 
 AnalysisChain analysis(aidata);
+#ifdef COMPUTE_SPECTRUM
+Spectrum spectrum(0, &analysis);
+ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_PEAKFREQ, &analysis);
+#endif
 Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE,
                   &analysis);
 
@@ -144,6 +174,20 @@ void setupAIData() {
 }
 
 
+void setupAudio() {
+  //audio.setMixer(&AudioPlayBuffer::difference);
+  audio.setMixer(&AudioPlayBuffer::assign);
+  AudioMemory(AUDIO_BLOCKS);
+  audio.setupAmp(AMPL_ENABLE_PIN);
+  audio.setupVolume(0.1);
+  audio.setLowpass(2);
+  audio.addFeedback(0.3, 6*440.0, 0.1);
+#ifdef COMPUTE_CORRELATIONS
+  audio.addFeedback(0.2, 2*440.0, 0.2);
+#endif
+}
+
+
 void setupAnalysis() {
 #ifdef DETECT_CLIPPING
   clipping.setClipThreshold(0.9);   // make it configurable!
@@ -183,6 +227,7 @@ void setup() {
   initScreen();
   screen.setBacklightOn();
   setupScreen();
+  setupAudio();
   setupAnalysis();
   aidata.begin();
   aidata.start();
@@ -198,6 +243,7 @@ void setup() {
 
 void loop() {
   analysis.update();
+  audio.update();
   if (millis() > 15000) {
     datafile.closeWave();
     screen.clearText(SCREEN_TEXT_ACTION);
