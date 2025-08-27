@@ -56,8 +56,8 @@
 
 #define AMPL_ENABLE_PIN   6  // pin for enabling audio amplifier
 
-#define DOWN_PIN         28  // pin for push button for decreasing audio volume/zoom
-#define UP_PIN           29  // pin for push button for increasing audio volume/zoom
+#define DOWN_PIN         29  // pin for push button for decreasing audio volume/zoom
+#define UP_PIN           28  // pin for push button for increasing audio volume/zoom
 #define RECORD_PIN       30  // pin for push button starting and stopping a recording
 #define VOICE_PIN        31  // pin for push button starting and stopping a voice message
 
@@ -259,6 +259,7 @@ void stopRecording() {
 
 
 void toggleRecord(int id) {
+  Serial.println("TOGGLE RECORD");
 /*
   if (voicefile.isOpen()) // voice message in progress
     stopVoiceMessage();
@@ -283,6 +284,7 @@ void toggleRecord(int id) {
 
 
 void toggleVoiceMessage(int id) {
+  Serial.println("TOGGLE VOICE");
   if (reporttime.enabled()) {
 #ifdef DETECT_CLIPPING
     if (buttons.button(id)->previousDuration() > 500) {
@@ -326,6 +328,7 @@ void setGain() {
 
 
 void switchUp(int id) {
+  Serial.println("SWITCH UP");
   /*
   if (voicefile.isOpen())
     return;
@@ -352,6 +355,7 @@ void switchUp(int id) {
 
 
 void switchDown(int id) {
+  Serial.println("SWITCH DOWN");
   /*
   if (voicefile.isOpen())
     return;
