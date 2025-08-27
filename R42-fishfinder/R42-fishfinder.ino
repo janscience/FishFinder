@@ -57,8 +57,8 @@
 EXT_DATA_BUFFER(AIBuffer, NAIBuffer, 16*512*256)
 InputTDM aidata(AIBuffer, NAIBuffer);
 ControlPCM186x pcm(Wire1, PCM186x_I2C_ADDR1, InputTDM::TDM2);
+ControlPCM186x pcm2(Wire1, PCM186x_I2C_ADDR2, InputTDM::TDM2);
 
-/*
 Display screen;
 ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
               TFT_SCK_PIN, TFT_RST_PIN);
@@ -66,7 +66,6 @@ ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
 AnalysisChain analysis(aidata);
 Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE,
                   &analysis);
-*/
 
 DeviceID deviceid(DEVICEID);
 SDCard sdcard;
@@ -83,7 +82,7 @@ int updownstate = 0;    // how to use up/down buttons
 const int maxupdownstates = 4; // number of different usages for up/down buttons
 char updownids[maxupdownstates][2] = {"V", "G", "X", "Y"};
 
-/*
+
 void initScreen() {
   tft.init(240, 320);
   DisplayWrapper<ST7789_t3> *tftscreen = new DisplayWrapper<ST7789_t3>(&tft);
@@ -116,7 +115,7 @@ void setupScreen() {
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.82);
   screen.setBacklightOn();
 }
-*/
+
 
 void setupAIData() {
   Wire1.begin();
@@ -138,9 +137,13 @@ void setupAIData() {
   pcm.setGainDecibel(aidata, aisettings.gainDecibel());
   pcm.setFilters(ControlPCM186x::FIR, false);
   Serial.println();
+  Serial.printf("Setup PCM186x on TDM %d: ", pcm2.TDMBus());
+  pcm2.setupTDM(ControlPCM186x::CH2L, ControlPCM186x::CH2R, 1);
+  pcm2.powerdown();
+  Serial.println("powered down");
 }
 
-/*
+
 void setupAnalysis() {
 #ifdef DETECT_CLIPPING
   clipping.setClipThreshold(0.9);   // make it configurable!
@@ -159,10 +162,10 @@ void setupAnalysis() {
   plotting.setAlignMax(0.5);        // align maximum in center of plot
   analysis.start(ANALYSIS_INTERVAL, ANALYSIS_WINDOW);
 }
-*/
+
 
 void setup() {
-  //screen.setBacklightPin(TFT_BL_PIN);
+  screen.setBacklightPin(TFT_BL_PIN);
   aisettings.setRateSelection(ControlPCM186x::SamplingRates,
                               ControlPCM186x::MaxSamplingRates);
   aisettings.enable("Pregain");
@@ -177,10 +180,10 @@ void setup() {
   Serial.println();
   deviceid.setID(settings.deviceID());
   setupAIData();
-  //initScreen();
-  //screen.setBacklightOn();
-  //setupScreen();
-  //setupAnalysis();
+  initScreen();
+  screen.setBacklightOn();
+  setupScreen();
+  setupAnalysis();
   aidata.begin();
   aidata.start();
   aidata.report();
@@ -189,15 +192,15 @@ void setup() {
   datafile.openWave(name.c_str(), -1, "2025-08-23T22:23:14");
   datafile.setMaxFileSamples(0);
   datafile.start();
-  //screen.writeText(SCREEN_TEXT_ACTION, "REC");
+  screen.writeText(SCREEN_TEXT_ACTION, "REC");
 }
 
 
 void loop() {
-  //analysis.update();
+  analysis.update();
   if (millis() > 15000) {
     datafile.closeWave();
-    //screen.clearText(SCREEN_TEXT_ACTION);
+    screen.clearText(SCREEN_TEXT_ACTION);
   }
   else if (datafile.pending())
     datafile.write();
