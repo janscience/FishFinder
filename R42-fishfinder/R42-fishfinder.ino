@@ -20,6 +20,9 @@
 #include <Spectrum.h>
 #include <ReportPeakFreq.h>
 #endif
+#include <ReportTime.h>
+#include <RTClock.h>
+#include <PushButtons.h>
 #include <MicroConfig.h>
 #include <Settings.h>
 #include <InputTDMSettings.h>
@@ -37,6 +40,9 @@
 
 #define AUDIO_BLOCKS     4
 
+#define MAX_TEXT_SWAP 5
+#define MAX_FILE_SHOWTIME 30*1000 // 30s
+
 #define ANALYSIS_INTERVAL  0.2 // seconds
 #define ANALYSIS_WINDOW    0.2 // seconds
 
@@ -49,6 +55,11 @@
 // Pin assignment: ------------------------------------------------------------
 
 #define AMPL_ENABLE_PIN   6  // pin for enabling audio amplifier
+
+#define DOWN_PIN         28  // pin for push button for decreasing audio volume/zoom
+#define UP_PIN           29  // pin for push button for increasing audio volume/zoom
+#define RECORD_PIN       30  // pin for push button starting and stopping a recording
+#define VOICE_PIN        31  // pin for push button starting and stopping a voice message
 
 
 // TFT display: ---------------------------------------------------------------
@@ -89,6 +100,13 @@ Display screen;
 ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
               TFT_SCK_PIN, TFT_RST_PIN);
 
+DeviceID deviceid(DEVICEID);
+SDCard sdcard;
+SDWriter datafile(sdcard, aidata);
+
+RTClock rtclock;
+PushButtons buttons;
+
 AnalysisChain analysis(aidata);
 #ifdef COMPUTE_SPECTRUM
 Spectrum spectrum(0, &analysis);
@@ -96,21 +114,29 @@ ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_PEAKFREQ, &analysis);
 #endif
 Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE,
                   &analysis);
-
-DeviceID deviceid(DEVICEID);
-SDCard sdcard;
-SDWriter datafile(sdcard, aidata);
+ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 
 Config config("fishfinder.cfg", &sdcard);
 Settings settings(config, PATH, DEVICEID, FILENAME);
 InputTDMSettings aisettings(config, SAMPLING_RATE, NCHANNELS, GAIN, PREGAIN);
 
+int SwapCounter;
+elapsedMillis DateFileTime;
+
 String prevname; // previous file name without increment
 String lastname; // last recorded file name
 int restarts = 0;
+
 int updownstate = 0;    // how to use up/down buttons
 const int maxupdownstates = 4; // number of different usages for up/down buttons
 char updownids[maxupdownstates][2] = {"V", "G", "X", "Y"};
+#ifdef DETECT_CLIPPING
+char clippingids[2][2] = {"", "C"};
+#endif
+
+float gain = 0.0;
+float max_gain = 40.0;
+float gain_step = 10.0;
 
 
 void initScreen() {
@@ -144,6 +170,13 @@ void setupScreen() {
 #endif
   screen.setPlotAreas(1, 0.0, 0.0, 1.0, 0.82);
   screen.setBacklightOn();
+}
+
+
+void diskFull() {
+  Serial.println("SD card probably not inserted or full");
+  Serial.println();
+  screen.writeText(SCREEN_TEXT_ACTION, "!NO SD CARD!");
 }
 
 
@@ -208,6 +241,154 @@ void setupAnalysis() {
 }
 
 
+void startRecording() {
+  reporttime.disable();
+  //String name = makeFileName(settings.fileName());
+  //openFile(name);
+  SwapCounter = 0;
+}
+
+
+void stopRecording() {
+  datafile.write();
+  datafile.closeWave();
+  screen.clearText(SCREEN_TEXT_ACTION);
+  screen.clearText(SCREEN_TEXT_FILETIME);
+  Serial.println("  stopped recording\n");
+}
+
+
+void toggleRecord(int id) {
+/*
+  if (voicefile.isOpen()) // voice message in progress
+    stopVoiceMessage();
+  else */ if (datafile.isOpen())
+    stopRecording();
+  else if (! reporttime.enabled()) {
+    if (lastname.length() > 0 &&
+	buttons.button(id)->previousDuration() > 500) {
+      sdcard.remove(lastname.c_str());
+      lastname = "";
+      screen.writeText(SCREEN_TEXT_ACTION, "DELETED");
+    }
+    /*
+    else
+      reactivateBaseScreen();
+      */
+  }
+  else
+    startRecording();
+  DateFileTime = 0;
+}
+
+
+void toggleVoiceMessage(int id) {
+  if (reporttime.enabled()) {
+#ifdef DETECT_CLIPPING
+    if (buttons.button(id)->previousDuration() > 500) {
+      clipping.toggleFeedback();
+      screen.writeText(SCREEN_TEXT_CLIPPING,
+                       clippingids[clipping.feedbackEnabled()]);
+    }
+    else {
+#endif
+      // change up/down switch usage:
+      updownstate++;
+      if (updownstate >= maxupdownstates)
+        updownstate = 0;
+      screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
+#ifdef DETECT_CLIPPING
+    }
+#endif
+  }
+  else {
+    // voice message only as long as last file name is shown
+    if (datafile.isOpen())       // recording in progress
+      return;
+    if (lastname.length() == 0)  // no recording yet
+      return;
+    /*
+    if (voicefile.isOpen())
+      stopVoiceMessage();
+    else
+      startVoiceMessage();
+    */
+    DateFileTime = 0;
+  }
+}
+
+
+void setGain() {
+  audio.pause();
+  pcm.setGainDecibel(aidata, gain);
+  audio.play();
+}
+
+
+void switchUp(int id) {
+  /*
+  if (voicefile.isOpen())
+    return;
+  */
+  switch (updownids[updownstate][0]) {
+  case 'G':
+    if (!datafile.isOpen() && gain < max_gain) {
+      gain += gain_step;
+      if ( gain > max_gain)
+        gain = max_gain;
+      setGain();
+    }
+    break;
+  case 'Y':
+    plotting.zoomAmplitudeIn();
+    break;
+  case 'X':
+    plotting.zoomTimeIn();
+    break;
+  default:
+    audio.volumeUp();
+  }
+}
+
+
+void switchDown(int id) {
+  /*
+  if (voicefile.isOpen())
+    return;
+  */
+  switch (updownids[updownstate][0]) {
+  case 'G':
+    if (!datafile.isOpen() && gain > 0.0) {
+      gain -= gain_step;
+      if (gain < 0.0)
+        gain = 0.0;
+      setGain();
+    }
+    break;
+  case 'Y':
+    plotting.zoomAmplitudeOut();
+    break;
+  case 'X':
+    plotting.zoomTimeOut();
+    break;
+  default:
+    audio.volumeDown();
+  }
+}
+
+
+void setupButtons() {
+  int record = buttons.add(RECORD_PIN, INPUT_PULLUP);
+  int voice = buttons.add(VOICE_PIN, INPUT_PULLUP);
+  int up = buttons.add(UP_PIN, INPUT_PULLUP);
+  int down = buttons.add(DOWN_PIN, INPUT_PULLUP);
+  buttons.set(record, 0, toggleRecord);
+  buttons.set(voice, 0, toggleVoiceMessage);
+  buttons.set(up, switchUp);
+  buttons.set(down, switchDown);
+}
+
+
 void setup() {
   screen.setBacklightPin(TFT_BL_PIN);
   aisettings.setRateSelection(ControlPCM186x::SamplingRates,
@@ -216,6 +397,8 @@ void setup() {
   Serial.begin(9600);
   while (!Serial && millis() < 200) {};
   printFishfinderBanner();
+  rtclock.check();
+  rtclock.report();
   sdcard.begin();
   //config.load();
   //if (Serial)
@@ -229,6 +412,7 @@ void setup() {
   setupScreen();
   setupAudio();
   setupAnalysis();
+  setupButtons();
   aidata.begin();
   aidata.start();
   aidata.report();
@@ -242,6 +426,7 @@ void setup() {
 
 
 void loop() {
+  buttons.update();
   analysis.update();
   audio.update();
   if (millis() > 15000) {
