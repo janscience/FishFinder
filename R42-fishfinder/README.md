@@ -5,6 +5,11 @@
 ![pinout](teensy41-R42-fishfinder-pinout.png)
 
 
+### Amplifier
+
+[Teensy_Amp R4.2](https://github.com/janscience/Teensy_Amp/tree/main/R4.2)
+
+
 ### Display
 
 [Adafruit 2.0" 320x240 Color IPS TFT Display](https://www.adafruit.com/product/4311) on SPI via ST7789 chip:
@@ -40,3 +45,28 @@
 - Volume up (blue): 29
 - Record (orange): 30
 - Voice message (green): 31
+
+
+### Microphone
+
+[SparkFun Analog MEMS Microphone](https://www.sparkfun.com/products/18011)
+
+- GND (black)
+- 3.3V (red)
+- A0 (yellow): 41 (A17)
+
+
+### Real time clock con battery
+
+- GND (black)
+- VBAT (red)
+
+
+### LiPo Charger
+
+[Adafruit LiIon/LiPoly Backpack](https://www.adafruit.com/product/2124)
+
+- VUSB (red)
+- Vin  (orange)
+- GND (black)
+

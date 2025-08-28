@@ -34,13 +34,13 @@
 #define AUDIO_BLOCKS     4
 
 #define MAX_TEXT_SWAP 5
-#define MAX_FILE_SHOWTIME 30*1000 // 30s
+#define MAX_FILE_SHOWTIME 30*1000   // 30s
 
-#define ANALYSIS_INTERVAL  0.25 // seconds
-#define ANALYSIS_WINDOW    0.2 // seconds
+#define ANALYSIS_INTERVAL  0.25     // seconds
+#define ANALYSIS_WINDOW    0.2      // seconds
 
-#define SPECTRUM_FMIN  70.0   // Hz
-#define SPECTRUM_FMAX  2500.0 // Hz, 1.0e9 or larger: take all upto Nyquist frequency.
+#define SPECTRUM_FMIN    70.0       // Hz
+#define SPECTRUM_FMAX  2500.0       // Hz, 1.0e9 or larger: take all upto Nyquist frequency.
 
 
 // Pin assignment: ------------------------------------------------------------
@@ -125,7 +125,7 @@ char clippingids[2][2] = {"", "C"};
 
 float gain = 0.0;
 float max_gain = 40.0;
-float gain_step = 10.0;
+float gain_step = 5.0;
 
 
 void initScreen() {
@@ -302,6 +302,7 @@ void toggleVoiceMessage(int id) {
 void setGain() {
   audio.pause();
   pcm.setGainDecibel(aidata, gain);
+  Serial.printf("Set gain to %.0fdB\n", gain);
   audio.play();
 }
 
