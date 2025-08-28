@@ -1,8 +1,3 @@
-// Features: ------------------------------------------------------------------
-
-// Compute spectrum and detect peak frequency:
-#define COMPUTE_SPECTRUM
-
 #include <FishfinderBanner.h>
 #include <Wire.h>
 #include <ControlPCM186x.h>
@@ -16,10 +11,8 @@
 #include <fonts/FreeSans12pt7b.h>
 #include <AnalysisChain.h>
 #include <Plotting.h>
-#ifdef COMPUTE_SPECTRUM
 #include <Spectrum.h>
 #include <ReportPeakFreq.h>
-#endif
 #include <ReportTime.h>
 #include <RTClock.h>
 #include <PushButtons.h>
@@ -32,7 +25,7 @@
 #define NCHANNELS        2        // number of channels (even, from 2 to 16)
 #define SAMPLING_RATE    48000    // samples per second and channel in Hertz
 #define PREGAIN          10.0     // gain factor of preamplifier
-#define GAIN             40.0      // dB
+#define GAIN              0.0      // dB
 
 #define DEVICEID         1                  // may be used for naming pathes and files
 #define PATH             "ffID1-SDATE"   // folder where to store the recordings, may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM
@@ -43,21 +36,19 @@
 #define MAX_TEXT_SWAP 5
 #define MAX_FILE_SHOWTIME 30*1000 // 30s
 
-#define ANALYSIS_INTERVAL  0.2 // seconds
+#define ANALYSIS_INTERVAL  0.25 // seconds
 #define ANALYSIS_WINDOW    0.2 // seconds
 
-#ifdef COMPUTE_SPECTRUM
 #define SPECTRUM_FMIN  70.0   // Hz
 #define SPECTRUM_FMAX  2500.0 // Hz, 1.0e9 or larger: take all upto Nyquist frequency.
-#endif
 
 
 // Pin assignment: ------------------------------------------------------------
 
 #define AMPL_ENABLE_PIN   6  // pin for enabling audio amplifier
 
-#define DOWN_PIN         29  // pin for push button for decreasing audio volume/zoom
-#define UP_PIN           28  // pin for push button for increasing audio volume/zoom
+#define DOWN_PIN         28  // pin for push button for decreasing audio volume/zoom
+#define UP_PIN           29  // pin for push button for increasing audio volume/zoom
 #define RECORD_PIN       30  // pin for push button starting and stopping a recording
 #define VOICE_PIN        31  // pin for push button starting and stopping a voice message
 
@@ -108,10 +99,8 @@ RTClock rtclock;
 PushButtons buttons;
 
 AnalysisChain analysis(aidata);
-#ifdef COMPUTE_SPECTRUM
 Spectrum spectrum(0, &analysis);
 ReportPeakFreq peakfreq(&spectrum, &screen, SCREEN_TEXT_PEAKFREQ, &analysis);
-#endif
 Plotting plotting(0, 0, &screen, 0, SCREEN_TEXT_TIME, SCREEN_TEXT_AMPLITUDE,
                   &analysis);
 ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
@@ -153,9 +142,7 @@ void setupScreen() {
   screen.clear();
   screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.9, 0.38, 1.0);
   screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.9, 1.0, 1.0);
-#ifdef COMPUTE_SPECTRUM
   screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.77, 0.3, 0.87);
-#endif
   screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.77, 1.0, 0.87);
   screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
   screen.setTextArea(SCREEN_TEXT_TIME, 0.0, 0.0, 0.25, 0.13);
@@ -215,9 +202,6 @@ void setupAudio() {
   audio.setupVolume(0.1);
   audio.setLowpass(2);
   audio.addFeedback(0.3, 6*440.0, 0.1);
-#ifdef COMPUTE_CORRELATIONS
-  audio.addFeedback(0.2, 2*440.0, 0.2);
-#endif
 }
 
 
@@ -226,15 +210,10 @@ void setupAnalysis() {
   clipping.setClipThreshold(0.9);   // make it configurable!
   clipping.setMuteThreshold(0.7);   // make it configurable!
 #endif
-#ifdef COMPUTE_CORRELATIONS
-  correlation.disable();
-#endif
-#ifdef COMPUTE_SPECTRUM
   spectrum.setNFFT(4096);
   spectrum.setResolution(3.0);
   peakfreq.setFrequencyRange(SPECTRUM_FMIN, SPECTRUM_FMAX);
-#endif
-  plotting.setSkipping(4);
+  //plotting.setSkipping(4);
   plotting.setWindow(0.01);
   plotting.setAlignMax(0.5);        // align maximum in center of plot
   analysis.start(ANALYSIS_INTERVAL, ANALYSIS_WINDOW);
