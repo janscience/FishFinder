@@ -19,22 +19,24 @@
 #include <MicroConfig.h>
 #include <Settings.h>
 #include <InputTDMSettings.h>
+#include <RTClockMenu.h>
+#include <SDCardMenu.h>
+#include <DiagnosticMenu.h>
 
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
 #define NCHANNELS        2        // number of channels (even, from 2 to 16)
-#define SAMPLING_RATE    48000    // samples per second and channel in Hertz
+#define SAMPLING_RATE    96000    // samples per second and channel in Hertz
 #define PREGAIN          10.0     // gain factor of preamplifier
 #define GAIN              0.0      // dB
 
 #define DEVICEID         1                  // may be used for naming pathes and files
 #define PATH             "ffID1-SDATE"   // folder where to store the recordings, may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM
-#define FILENAME         "ffID1-SDATENNUM3.wav"  // may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM, ANUM, COUNT
+#define FILENAME         "ffID1-SDATENNUM2.wav"  // may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM, ANUM, COUNT
 
 #define AUDIO_BLOCKS     4
 
-#define MAX_TEXT_SWAP 5
-#define MAX_FILE_SHOWTIME 30*1000   // 30s
+#define MAX_TEXT_SWAP   20
 
 #define ANALYSIS_INTERVAL  0.25     // seconds
 #define ANALYSIS_WINDOW    0.2      // seconds
@@ -108,6 +110,11 @@ ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 Config config("fishfinder.cfg", &sdcard);
 Settings settings(config, PATH, DEVICEID, FILENAME);
 InputTDMSettings aisettings(config, SAMPLING_RATE, NCHANNELS, GAIN, PREGAIN);
+RTClockMenu rtclock_menu(config, rtclock);
+ConfigurationMenu configuration_menu(config, sdcard);
+SDCardMenu sdcard_menu(config, sdcard, settings);
+DiagnosticMenu diagnostic_menu(config, sdcard, &deviceid, &pcm, &rtclock);
+HelpAction help_act(config, "Help");
 
 int SwapCounter;
 elapsedMillis DateFileTime;
@@ -141,7 +148,7 @@ void initScreen() {
 void setupScreen() {
   screen.clear();
   screen.setTextArea(SCREEN_TEXT_ACTION, 0.0, 0.9, 0.38, 1.0);
-  screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.4, 0.9, 1.0, 1.0);
+  screen.setTextArea(SCREEN_TEXT_DATEFILE, 0.38, 0.9, 1.0, 1.0);
   screen.setTextArea(SCREEN_TEXT_PEAKFREQ, 0.0, 0.77, 0.3, 0.87);
   screen.setTextArea(SCREEN_TEXT_FILETIME, 0.8, 0.77, 1.0, 0.87);
   screen.setTextArea(SCREEN_TEXT_UPDOWN, 0.95, 0.79, 1.0, 0.87, true);
@@ -160,10 +167,14 @@ void setupScreen() {
 }
 
 
-void diskFull() {
-  Serial.println("SD card probably not inserted or full");
-  Serial.println();
-  screen.writeText(SCREEN_TEXT_ACTION, "!NO SD CARD!");
+void reactivateBaseScreen() {
+    reporttime.enable();
+    screen.clearText(SCREEN_TEXT_ACTION);
+#ifdef DETECT_CLIPPING
+    screen.writeText(SCREEN_TEXT_CLIPPING,
+                     clippingids[clipping.feedbackEnabled()]);
+#endif
+    screen.writeText(SCREEN_TEXT_UPDOWN, updownids[updownstate]);
 }
 
 
@@ -222,8 +233,8 @@ void setupAnalysis() {
 
 void startRecording() {
   reporttime.disable();
-  //String name = makeFileName(settings.fileName());
-  //openFile(name);
+  String name = makeFileName(settings.fileName());
+  openFile(name);
   SwapCounter = 0;
 }
 
@@ -251,10 +262,8 @@ void toggleRecord(int id) {
       lastname = "";
       screen.writeText(SCREEN_TEXT_ACTION, "DELETED");
     }
-    /*
     else
       reactivateBaseScreen();
-      */
   }
   else
     startRecording();
@@ -373,8 +382,133 @@ void setupButtons() {
 }
 
 
+void diskFull() {
+  Serial.println("SD card probably not inserted or full");
+  Serial.println();
+  screen.writeText(SCREEN_TEXT_ACTION, "!NO SD CARD!");
+}
+
+
+String makeFileName(const char *filename) {
+  String name = filename;
+  name = deviceid.makeStr(name);
+  time_t t = now();
+  name = rtclock.makeStr(name, t, true);
+  if (name != prevname) {
+    datafile.sdcard()->resetFileCounter();
+    prevname = name;
+  }
+  name = datafile.sdcard()->incrementFileName(name);
+  if (name.length() <= 0) {
+    Serial.println("WARNING: failed to increment file name.");
+    diskFull();
+    return "";
+  }
+  return name;
+}
+
+
+bool openFile(const String &name) {
+  if (name.length() == 0)
+    return false;
+  char dts[20];
+  rtclock.dateTime(dts);
+  if (! datafile.openWave(name.c_str(), -1, dts)) {
+    Serial.println("WARNING: failed to open file on SD card.");
+    diskFull();
+    return false;
+  }
+  lastname = name;
+  datafile.setMaxFileSamples(0);
+  datafile.start();
+  Serial.println(name);
+  // all screen writing 210ms:
+  String sname = name;
+  int idx = sname.lastIndexOf('.');
+  if (idx >= 0)
+    sname.remove(idx);
+  screen.writeText(SCREEN_TEXT_ACTION, "REC");
+  screen.writeText(SCREEN_TEXT_DATEFILE, sname.c_str());
+  return true;
+}
+
+
+void setupStorage(const char *path) {
+  prevname = "";
+  lastname = "";
+  datafile.sdcard()->rootDir();
+  String path_name = makeFileName(path);
+  if (datafile.sdcard()->dataDir(path_name.c_str()))
+    Serial.printf("Save recorded data in folder \"%s\".\n\n",
+    path_name.c_str());
+  datafile.setWriteInterval(0.01);
+  datafile.header().setSoftware(SOFTWARE);
+  datafile.header().setCPUSpeed();
+}
+
+
+void storeData() {
+  bool swap = false;
+  if (datafile.pending()) {
+    ssize_t samples = datafile.write();
+    if (samples <= 0) {
+      Serial.println();
+      Serial.println("ERROR in writing data to file:");
+      switch (samples) {
+        case 0:
+          Serial.println("  Nothing written into the file.");
+          Serial.println("  SD card probably full");
+          screen.writeText(SCREEN_TEXT_ACTION, "!NOTHING WRITTEN!");
+          break;
+        case -3:
+          Serial.println("  No data available, data acquisition probably not running.");
+          Serial.println("  sampling rate probably too high,");
+          Serial.println("  given the number of channels, averaging, sampling and conversion speed.");
+          screen.writeText(SCREEN_TEXT_ACTION, "!NO DATA!");
+          break;
+        default: // -1 (file not open), -2 (file already full)
+          break;
+      }
+      if (samples == -3) {
+        aidata.stop();
+        datafile.closeWave();
+        char mfs[30];
+        sprintf(mfs, "error%d-%d.msg", restarts+1, -samples);
+        FsFile mf = sdcard.openWrite(mfs);
+        mf.close();
+      }
+    }
+    if (datafile.isOpen()) {
+      char ts[6];
+      datafile.fileTimeStr(ts);
+      screen.writeText(SCREEN_TEXT_FILETIME, ts);
+      swap = true;
+    }
+  }
+  /*
+  if (voicefile.pending()) {
+    voicefile.write();
+    char ts[6];
+    voicefile.fileTimeStr(ts);
+    screen.writeText(SCREEN_TEXT_FILETIME, ts);
+    swap = true;
+  }
+  */
+  if (swap) {
+    SwapCounter++;
+    if (SwapCounter >= MAX_TEXT_SWAP) {
+      SwapCounter = 0;
+      screen.swapTextColors(SCREEN_TEXT_ACTION);
+      screen.rewriteText(SCREEN_TEXT_ACTION);
+    }
+    DateFileTime = 0;
+  }
+}
+
+
 void setup() {
   screen.setBacklightPin(TFT_BL_PIN);
+  settings.disable("FileTime");
   aisettings.setRateSelection(ControlPCM186x::SamplingRates,
                               ControlPCM186x::MaxSamplingRates);
   aisettings.enable("Pregain");
@@ -384,15 +518,16 @@ void setup() {
   rtclock.check();
   rtclock.report();
   sdcard.begin();
-  //config.load();
-  //if (Serial)
-  //  config.execute(Serial, 10000);
+  config.load();
+  if (Serial)
+    config.execute(Serial, 10000);
   config.report();
   Serial.println();
   deviceid.setID(settings.deviceID());
   setupAIData();
   initScreen();
   screen.setBacklightOn();
+  setupStorage(settings.path());
   setupScreen();
   setupAudio();
   setupAnalysis();
@@ -400,23 +535,14 @@ void setup() {
   aidata.begin();
   aidata.start();
   aidata.report();
-  String name = "recNUM.wav";
-  name = datafile.sdcard()->incrementFileName(name);
-  datafile.openWave(name.c_str(), -1, "2025-08-23T22:23:14");
-  datafile.setMaxFileSamples(0);
-  datafile.start();
-  screen.writeText(SCREEN_TEXT_ACTION, "REC");
 }
 
 
 void loop() {
   buttons.update();
+  storeData();
   analysis.update();
   audio.update();
-  if (millis() > 15000) {
-    datafile.closeWave();
-    screen.clearText(SCREEN_TEXT_ACTION);
-  }
-  else if (datafile.pending())
+  if (datafile.pending())
     datafile.write();
 }
