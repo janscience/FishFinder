@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <ControlPCM186x.h>
 #include <InputTDM.h>
+#include <InputADC.h>
 #include <AudioMonitor.h>
 #include <SDCard.h>
 #include <SDWriter.h>
@@ -19,33 +20,41 @@
 #include <MicroConfig.h>
 #include <Settings.h>
 #include <InputTDMSettings.h>
+#include <InputADCSettings.h>
 #include <RTClockMenu.h>
 #include <SDCardMenu.h>
 #include <DiagnosticMenu.h>
 
 // Default settings: ----------------------------------------------------------
 // (may be overwritten by config file fishgrid.cfg)
-#define NCHANNELS        2        // number of channels (even, from 2 to 16)
+#define NCHANNELS            2    // number of channels (even, from 2 to 16)
 #define SAMPLING_RATE    96000    // samples per second and channel in Hertz
-#define PREGAIN          10.0     // gain factor of preamplifier
-#define GAIN              0.0      // dB
+#define PREGAIN           10.0    // gain factor of preamplifier
+#define GAIN              20.0    // dB
 
-#define DEVICEID         1                  // may be used for naming pathes and files
+#define DEVICEID         1        // may be used for naming pathes and files
 #define PATH             "ffID1-SDATE"   // folder where to store the recordings, may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM
 #define FILENAME         "ffID1-SDATENNUM2.wav"  // may include ID, IDA, DATE, SDATE, TIME, STIME, DATETIME, SDATETIME, NUM, ANUM, COUNT
 
 #define AUDIO_BLOCKS     4
+
+#define VOICE_SAMPLING_RATE 22050 // samples per second and channel in Hertz, 22.05kHz, 44.1kHz 96kHz, or 192kHz
+#define VOICE_AVERAGING         4 // number of averages per sample: 0, 4, 8, 16, 32
+#define VOICE_CONVERSION    ADC_CONVERSION_SPEED::HIGH_SPEED
+#define VOICE_SAMPLING      ADC_SAMPLING_SPEED::HIGH_SPEED
 
 #define MAX_TEXT_SWAP   20
 
 #define ANALYSIS_INTERVAL  0.25     // seconds
 #define ANALYSIS_WINDOW    0.2      // seconds
 
-#define SPECTRUM_FMIN    70.0       // Hz
+#define SPECTRUM_FMIN    30.0       // Hz
 #define SPECTRUM_FMAX  2500.0       // Hz, 1.0e9 or larger: take all upto Nyquist frequency.
 
 
 // Pin assignment: ------------------------------------------------------------
+
+#define CHANNEL_VOICE   A17  // input pin for voice message
 
 #define AMPL_ENABLE_PIN   6  // pin for enabling audio amplifier
 
@@ -86,6 +95,9 @@ InputTDM aidata(AIBuffer, NAIBuffer);
 ControlPCM186x pcm(Wire1, PCM186x_I2C_ADDR1, InputTDM::TDM2);
 ControlPCM186x pcm2(Wire1, PCM186x_I2C_ADDR2, InputTDM::TDM2);
 
+DATA_BUFFER(VoiceBuffer, NVoiceBuffer, 32*512);
+InputADC voicedata(VoiceBuffer, NVoiceBuffer);
+
 AudioOutputI2S speaker;
 AudioMonitor audio(aidata, speaker);
 
@@ -96,6 +108,7 @@ ST7789_t3 tft(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN,
 DeviceID deviceid(DEVICEID);
 SDCard sdcard;
 SDWriter datafile(sdcard, aidata);
+SDWriter voicefile(sdcard, voicedata);
 
 RTClock rtclock;
 PushButtons buttons;
@@ -110,6 +123,9 @@ ReportTime reporttime(&screen, SCREEN_TEXT_DATEFILE, &rtclock, &analysis);
 Config config("fishfinder.cfg", &sdcard);
 Settings settings(config, PATH, DEVICEID, FILENAME);
 InputTDMSettings aisettings(config, SAMPLING_RATE, NCHANNELS, GAIN, PREGAIN);
+InputADCSettings voicesettings("Voice ADC", VOICE_SAMPLING_RATE, 12,
+		 	       VOICE_AVERAGING, VOICE_CONVERSION,
+			       VOICE_SAMPLING, ADC_REFERENCE::REF_3V3);
 RTClockMenu rtclock_menu(config, rtclock);
 ConfigurationMenu configuration_menu(config, sdcard);
 SDCardMenu sdcard_menu(config, sdcard, settings);
@@ -130,7 +146,7 @@ char updownids[maxupdownstates][2] = {"V", "G", "X", "Y"};
 char clippingids[2][2] = {"", "C"};
 #endif
 
-float gain = 0.0;
+float gain = 20.0;
 float max_gain = 40.0;
 float gain_step = 5.0;
 
@@ -210,7 +226,7 @@ void setupAudio() {
   audio.setMixer(&AudioPlayBuffer::assign);
   AudioMemory(AUDIO_BLOCKS);
   audio.setupAmp(AMPL_ENABLE_PIN);
-  audio.setupVolume(0.1);
+  audio.setupVolume(0.5);
   audio.setLowpass(2);
   audio.addFeedback(0.3, 6*440.0, 0.1);
 }
@@ -248,12 +264,50 @@ void stopRecording() {
 }
 
 
+void setupVoiceADC() {
+  voicedata.clearChannels();
+  voicedata.setChannel(0, CHANNEL_VOICE);
+  voicesettings.configure(&voicedata);
+  voicedata.check();
+}
+
+
+void startVoiceMessage() {
+  audio.pause();
+  setupVoiceADC();
+  voicedata.start();
+  voicedata.report();
+  String voicename = lastname;
+  voicename.remove(voicename.indexOf(".wav"));
+  voicename += "-message.wav";
+  voicefile.openWave(voicename.c_str());
+  voicefile.setMaxFileSamples(0);
+  voicefile.start();
+  screen.writeText(SCREEN_TEXT_ACTION, "VOICE");
+  #ifdef COMPUTE_SPECTRUM
+  screen.clearText(SCREEN_TEXT_PEAKFREQ);
+  #endif
+  Serial.println("START VOICE MESSAGE");
+  SwapCounter = 0;
+}
+
+
+void stopVoiceMessage() {
+  voicefile.write();
+  voicefile.closeWave();
+  voicedata.stop();
+  screen.clearText(SCREEN_TEXT_ACTION);
+  screen.clearText(SCREEN_TEXT_FILETIME);
+  audio.play();
+  Serial.println("STOP VOICE MESSAGE");
+}
+
+
 void toggleRecord(int id) {
   Serial.println("TOGGLE RECORD");
-/*
   if (voicefile.isOpen()) // voice message in progress
     stopVoiceMessage();
-  else */ if (datafile.isOpen())
+  else if (datafile.isOpen())
     stopRecording();
   else if (! reporttime.enabled()) {
     if (lastname.length() > 0 &&
@@ -297,12 +351,10 @@ void toggleVoiceMessage(int id) {
       return;
     if (lastname.length() == 0)  // no recording yet
       return;
-    /*
     if (voicefile.isOpen())
       stopVoiceMessage();
-    else
-      startVoiceMessage();
-    */
+    /* else
+      startVoiceMessage(); */
     DateFileTime = 0;
   }
 }
@@ -318,10 +370,8 @@ void setGain() {
 
 void switchUp(int id) {
   Serial.println("SWITCH UP");
-  /*
   if (voicefile.isOpen())
     return;
-  */
   switch (updownids[updownstate][0]) {
   case 'G':
     if (!datafile.isOpen() && gain < max_gain) {
@@ -345,10 +395,8 @@ void switchUp(int id) {
 
 void switchDown(int id) {
   Serial.println("SWITCH DOWN");
-  /*
   if (voicefile.isOpen())
     return;
-  */
   switch (updownids[updownstate][0]) {
   case 'G':
     if (!datafile.isOpen() && gain > 0.0) {
@@ -485,7 +533,6 @@ void storeData() {
       swap = true;
     }
   }
-  /*
   if (voicefile.pending()) {
     voicefile.write();
     char ts[6];
@@ -493,7 +540,6 @@ void storeData() {
     screen.writeText(SCREEN_TEXT_FILETIME, ts);
     swap = true;
   }
-  */
   if (swap) {
     SwapCounter++;
     if (SwapCounter >= MAX_TEXT_SWAP) {
