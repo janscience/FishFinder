@@ -128,8 +128,8 @@ InputADCSettings voicesettings("Voice ADC", VOICE_SAMPLING_RATE, 12,
 			       VOICE_SAMPLING, ADC_REFERENCE::REF_3V3);
 RTClockMenu rtclock_menu(config, rtclock);
 ConfigurationMenu configuration_menu(config, sdcard);
-SDCardMenu sdcard_menu(config, sdcard, settings);
-DiagnosticMenu diagnostic_menu(config, sdcard, &deviceid, &pcm, &rtclock);
+SDCardMenu sdcard_menu(config, sdcard);
+DiagnosticMenu diagnostic_menu(config, sdcard, &pcm, &rtclock);
 HelpAction help_act(config, "Help");
 
 int SwapCounter;
@@ -438,8 +438,7 @@ void diskFull() {
 
 
 String makeFileName(const char *filename) {
-  String name = filename;
-  name = deviceid.makeStr(name);
+  String name = SDCard::preparePath(filename, settings.deviceID());
   time_t t = now();
   name = rtclock.makeStr(name, t, true);
   if (name != prevname) {
@@ -566,7 +565,7 @@ void setup() {
   sdcard.begin();
   config.load();
   if (Serial)
-    config.execute(Serial, 10000);
+    config.execute();
   config.report();
   Serial.println();
   deviceid.setID(settings.deviceID());
