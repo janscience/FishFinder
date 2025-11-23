@@ -57,7 +57,7 @@
 #include <FishfinderADCSettings.h>
 #include <FishfinderSettings.h>
 #ifdef LOGGER
-#include <LoggerSettings.h>
+#include <FFLoggerSettings.h>
 #endif
 #ifdef STORE_SETUP
 #include <EEPROM.h>
@@ -243,8 +243,8 @@ FishfinderADCSettings *ai_settings[MAX_SETTINGS] = { &ai_44khz_settings,
 						     &ai_192khz_settings };
 FishfinderSettings settings(PATH, FILENAME, 0);
 #ifdef LOGGER
-LoggerSettings logger_settings(LOGGER_PATH, LOGGER_FILENAME, 0,
-			       LOGGER_FILESAVETIME, LOGGER_INITIALDELAY);
+FFLoggerSettings logger_settings(LOGGER_PATH, LOGGER_FILENAME, 0,
+			         LOGGER_FILESAVETIME, LOGGER_INITIALDELAY);
 #endif
 InputADCSettings voice_settings("Voice ADC", VOICE_SAMPLING_RATE, BITS,
 				 VOICE_AVERAGING, VOICE_CONVERSION,

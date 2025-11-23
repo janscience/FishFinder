@@ -1,8 +1,9 @@
-#include <LoggerSettings.h>
+#include <FFLoggerSettings.h>
 
 
-LoggerSettings::LoggerSettings(const char *path, const char *filename,
-			       int mode, float filetime, float initialdelay) :
+FFLoggerSettings::FFLoggerSettings(const char *path, const char *filename,
+				   int mode, float filetime,
+				   float initialdelay) :
   FishfinderSettings(path, filename, mode),
   FileTime(*this, "FileTime", filetime, "%.0f", "s"),
   InitialDelay(*this, "InitialDelay", initialdelay, "%.0f", "s") {

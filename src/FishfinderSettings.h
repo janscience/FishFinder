@@ -29,8 +29,8 @@ public:
 
   const char *path() const { return Path.value(); };
   const char *fileName() const { return FileName.value(); };
-  int mode() const { return Mode.value(); };
-  void setMode(int mode) { Mode.setValue(mode); };
+  int mode() const { return Mode.enumValue(); };
+  void setMode(int mode) { Mode.setEnumValue(mode); };
 
   
 protected:
